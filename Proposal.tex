@@ -1,0 +1,198 @@
+
+\documentclass[journal]{IEEEtran}
+
+% *** GRAPHICS RELATED PACKAGES ***
+%
+
+  %\usepackage[pdftex]{graphicx}
+  \usepackage{graphicx}
+  \usepackage{amsmath}
+  % declare the path(s) where your graphic files are
+ \graphicspath{{../pdf/}{../jpeg/}}
+  % and their extensions so you won't have to specify these with
+  % every instance of \includegraphics
+   \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+\usepackage[export]{adjustbox}
+\usepackage{float}
+
+\usepackage[section]{placeins}
+
+% correct bad hyphenation here
+\usepackage{fixltx2e}
+ \usepackage{cite} 
+\usepackage{url}
+
+\usepackage{epstopdf}
+
+\epstopdfDeclareGraphicsRule{.gif}{png}{.png}{convert gif:#1 png:\OutputFile}
+\AppendGraphicsExtensions{.gif}
+
+\setcounter{totalnumber}{5}
+\setcounter{topnumber}{5}
+\setcounter{bottomnumber}{5}
+\renewcommand{\topfraction}{1}
+\renewcommand{\bottomfraction}{1}
+
+\begin{document}
+%
+% paper title
+% can use linebreaks \\ within to get better formatting as desired
+% Do not put math or special symbols in the title.
+\title{Project Proposal: 3D Pose Estimation from 2D Projections}
+%
+%
+% author names and IEEE memberships
+% note positions of commas and nonbreaking spaces ( ~ ) LaTeX will not break
+% a structure at a ~ so this keeps an author's name from being broken across
+% two lines.
+% use \thanks{} to gain access to the first footnote area
+% a separate \thanks must be used for each paragraph as LaTeX2e's \thanks
+% was not built to handle multiple paragraphs
+%
+
+\author{Richard (Alex) Showalter-Bucher\\Benjamin Yu}
+
+
+\maketitle
+
+\section{Background}
+Estimating an object's 3D position and orientation from a 2D projection has applications in several disciplines.
+Notably, physical object tracking in virtual reality systems (VR), such as the HTC Vive, precisely locate several
+known points in 2D camera space and estimate a 3D translation and rotation of the object. In this form, the
+problem is formalized as the "Perspective N-Point" problem. (PNP) These algorithms are mostly deterministic,
+with some implementing forms of gradient descent initialized to an approximate solution in order to be robust
+against noise. Deployed versions of these algorithms require a minimum number of observed points to function.
+For example, the HTC Vive, requires 5 non co-planar point for a non-ambigious solution.
+
+We plan to apply several machine learning algorithms to the problem. We will approach the problem from two
+domains of data. The first domain will be sparse, we will provide as input the 2D projections of several 3D reference
+points of a model in many thousands of poses. In the second domain, we will not provide reference points, instead,  we
+will provide a full rendered 2D scene, and allow the ML algorithms to estimate off the full image.
+
+\section{Step 1: Data Set Generation}
+
+We will create our two data sets for several simply geometric shapes. At the moment we are considering cube, sphere, pyramid, and cone.
+Once we encode the geometry of the base models, we will apply randomized translations and rotations. For the "reference point" data set,
+we will generate the final 2D projections of a set of reference points and record the actual 3D pose of the object. For the "image" data set,
+we will render the scene with OpenGL. We will provide textured and non-textured shapes (the idea being textures will provide anchor points
+to learn). We will implement a simple diffuse lighting model for these scenes. We also will create a version of this set with a non-trivial background scene.
+
+\section{Step 2: Baseline Deterministic Algorithm}
+
+We will apply known PNP deterministic algorithms to our "reference point" data set. The algorithm from blah and blah et all will serve as our baseline for comparision
+with the machine learning algorithms. Our baseline will be limited to the reference point set as these algorithms do not perform image recognition, instead relying on the
+precise 2D location of reference points and known intrinsic camera properties.
+
+\section{Step 3: Application of Machine Learning to Reference Point Data Set}
+
+We will implement a regression support vector machine, as well as a feed-forward neural network to attempt to solve the PNP problem. Due to the low-dimensionality
+of the input data, we will not be applying Convolutional Neural Networks to this set. We will attempt to use a division of the data into training, validation, and test
+sets in order to pick the best hyper-parameters for the problem with 5 reference points. To avoid a huge combinatoric problem, we plan to use a empirical form of
+coordinate ascent to zero in on optimal parameters.
+
+\section{Step 4: Solving the PNP Problem with Ambiguous Data}
+
+After a study of the performance of ML on the 5 point problem (in which we will have a direct comparision to the deterministic algorithms), we will then try to solve
+the problem using less than 5 reference points, which in the deterministic case, leads to ambiguous solutions. Our hope, is that the ML techniques will handle these
+ambiguities in a robust way.
+
+We also plan to do a study adding small amounts of gaussian noise to the provided 2D locations of the reference points, and report on robustness to that as well.
+
+\section{Step 5: Machine Learning Algorithms on the Full Image Data}
+
+After evaluating the low-dimensionality "reference point" data set, we will then attempt to apply the same techniques, as well as CNNs, on the full image data.
+We also plan to use a coordinate ascent empirical method to optimize hyper-parameters. We will again divide the data into training, validation, and test sets.
+Several variations of the data set will be provided: (1) Simple background, (2) complex background, (3) addition of image noise. We will study robustness to these 
+effects.
+
+\section{Stretch Goals}
+If we happen to have smooth sailing through all of these, or have to remove some of our studies due to insurmountable difficulties, we are considering the following
+stretch goals to extend our project.
+
+In the case of the reference point set, we can consider using a recurrent neural net and providing several frames of evolving data (i.e. add derivatives to our poses) and
+attempt to estimate a 12 degree of freedom state. Although this is more parameters to estimate, since our frames will follow a strict constant derivative formulation, we hope
+this will provide additional constraints for ambiguous problems.
+
+In the case of our image data set, we can attempt to apply this to a real physical object. We will use the precise measurements of a HTC Vive controller attached to some object
+of interest to generate a small data set of a posed objects, and then attempt to train a regression model.
+
+\section{Bail-Out Points}
+We have built in several points to bail-out in order to minimize the risk of total failure. First, if unable to implement a regression form of SVM, we will fall back and use libSVM. The same case for
+feed-forward neural nets and using TensorFlow if we cannot adapt our MATLAB implementation. (We plan to always use TensorFlow for our CNN implementation.) We have chosen two different
+approaches and two different problems, in the hopes that at least one of them will not be insurmountable to study. We will cut out first, the image data set if we run low on time, and then, one of
+the techniques if things go horribly wrong. In those case, we hope to have greater detail and depth on our discussion of whatever remainder is taking up all our time.
+
+
+\section{Timeline and Division of Labor}
+
+Here is our tentative timeline and labor division:
+
+\begin{table}
+\caption{Machine Learning Project Labor Management}
+\label{SomeTable}
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+Task & SubTask & Person & Complete Date\\
+\hline
+Data Set Generation &  & & 11-22\\
+& OpenGL Coding & Ben & 11-19\\
+& Data Generation & Ben & 11-22\\
+Reference Point Study & & & 12-6\\
+& SVM Regression Implementation & Ben & 11-25\\
+& NN Implementation & Alex & 11-25\\
+& Baselining with Current Algos & Alex & 11-25\\
+& 5 Point Runs & Both & 11-28\\
+& Ambiguous Runs & Both & 12-6\\
+Image Set Study & & & 12-6\\
+& SVM Regression Implementation & Ben & 11-26\\
+& CNN Implementation in TF & Alex & 11-29\\
+& NN Implementation & Alex & 11-26\\
+& Runs (Includes Hyper-Parameter Selection) & Both & 12-8\\
+Report Writing & & Both & 12-13\\
+\hline
+
+
+\end{tabular}
+\end{table}
+
+
+% For peer review papers, you can put extra information on the cover
+% page as needed:
+ \ifCLASSOPTIONpeerreview
+ \begin{center} \bfseries EDICS Category: 3-BBND \end{center}
+ \fi
+
+
+
+% For peerreview papers, this IEEEtran command inserts a page break and
+% creates the second title. It will be ignored for other modes.
+\IEEEpeerreviewmaketitle
+
+
+
+
+   
+\end{document}
+
+
+%Example figure syntax
+
+%\begin{figure}[h]
+%\centering
+%  \noindent
+%  \centering{\hspace{-8 ex} \includegraphics[width=3in]{layers2}}
+%  \caption{Boreholes and soil profile with measurements depths.}\label{Fig1Label}
+
+%\end{figure}
+
+
+%Example equation syntax
+%\begin{equation}\label{eq:wavenum}
+%k(z) = 2\pi f\sqrt{\epsilon_c(z)\mu} = \sqrt{(k^{mode_n}_\rho)^2 + %(k^{mode_n}_z)^2(z)},
+%\end{equation}
+
+
+
+
+
