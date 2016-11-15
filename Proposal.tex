@@ -62,7 +62,7 @@ known points in 2D camera space and estimate a 3D translation and rotation of th
 problem is formalized as the "Perspective N-Point" problem. (PNP) These algorithms are mostly deterministic,
 with some implementing forms of gradient descent initialized to an approximate solution in order to be robust
 against noise. Deployed versions of these algorithms require a minimum number of observed points to function.
-For example, the HTC Vive, requires 5 non co-planar point for a non-ambigious solution.
+For example, the HTC Vive, requires 5 non co-planar point for a non-ambiguous solution.
 
 We plan to apply several machine learning algorithms to the problem. We will approach the problem from two
 domains of data. The first domain will be sparse, we will provide as input the 2D projections of several 3D reference
@@ -79,7 +79,7 @@ to learn). We will implement a simple diffuse lighting model for these scenes. W
 
 \section{Step 2: Baseline Deterministic Algorithm}
 
-We will apply known PNP deterministic algorithms to our "reference point" data set. The algorithm from blah and blah et all will serve as our baseline for comparision
+We will apply known PNP deterministic algorithms to our "reference point" data set. The algorithm from blah and blah et all will serve as our baseline for comparison
 with the machine learning algorithms. Our baseline will be limited to the reference point set as these algorithms do not perform image recognition, instead relying on the
 precise 2D location of reference points and known intrinsic camera properties.
 
@@ -92,11 +92,11 @@ coordinate ascent to zero in on optimal parameters.
 
 \section{Step 4: Solving the PNP Problem with Ambiguous Data}
 
-After a study of the performance of ML on the 5 point problem (in which we will have a direct comparision to the deterministic algorithms), we will then try to solve
+After a study of the performance of ML on the 5 point problem (in which we will have a direct comparison to the deterministic algorithms), we will then try to solve
 the problem using less than 5 reference points, which in the deterministic case, leads to ambiguous solutions. Our hope, is that the ML techniques will handle these
 ambiguities in a robust way.
 
-We also plan to do a study adding small amounts of gaussian noise to the provided 2D locations of the reference points, and report on robustness to that as well.
+We also plan to do a study adding small amounts of Gaussian noise to the provided 2D locations of the reference points, and report on robustness to that as well.
 
 \section{Step 5: Machine Learning Algorithms on the Full Image Data}
 
@@ -125,9 +125,9 @@ the techniques if things go horribly wrong. In those case, we hope to have great
 
 \section{Timeline and Division of Labor}
 
-Here is our tentative timeline and labor division:
+Table \ref{SomeTable} shows a tentative timeline and division of labor.
 
-\begin{table}
+\begin{table}[h]
 \caption{Machine Learning Project Labor Management}
 \label{SomeTable}
 \centering
