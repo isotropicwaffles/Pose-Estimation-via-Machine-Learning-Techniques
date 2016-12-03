@@ -9,10 +9,10 @@ u2 = triangle(:,3) - triangle(:,2);
 normalVector = cross(u1, u2);
 
 % Multiplying by the sign of n dot z+ insures this is the normal point
-% TOWARDS the screen
+% AWAY FROM the screen
 normalVector = normalVector .* sign(dot(normalVector, [0; 0; 1]));
 
-inFront = dot(normalVector, p) > 0;
+inFront = dot(normalVector, p(1:3) - triangle(:, 2)) <= 1e-3;
 
 end
 
