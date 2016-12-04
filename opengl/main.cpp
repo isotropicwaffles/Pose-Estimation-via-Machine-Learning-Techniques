@@ -2,13 +2,15 @@
 #include "SOIL/SOIL.h"
 #include <iostream>
 #include <fstream>
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <cstdio>
 #include <stdint.h>
 #include <string>
 
-#define IMAGE_DIM 256
+#define IMAGE_DIM 512
+#define NUM_SAMPLES 500
 #define TEXTURE_FILE "world.topo.bathy.200401.3x5400x2700.jpg"
 
 //Prototypes
@@ -16,9 +18,12 @@ void saveData();
 void display();
 void saveBitmap(const std::string &fn);
 void drawCube();
+void drawCone();
 void drawSphere();
 void applyRandomPose();
 float randFloat();
+float cosd(float);
+float sind(float);
 
 //Globals (sorry)
 GLuint textureID = 0;
@@ -27,6 +32,16 @@ float randFloat()
 {
     float t = std::rand();
     return t / RAND_MAX;
+}
+
+float cosd(float x)
+{
+    return std::cos(x * M_PI / 180.0);
+}
+
+float sind(float x)
+{
+    return std::sin(x * M_PI / 180.0);
 }
 
 
@@ -87,18 +102,9 @@ void saveData()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	gluLookAt(0, 0, 0, 0, 0, -1, 0, 1, 0);
 
-	//Test shape
-    /*
-	glColor3f(1.0, 1.0, 1.0);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0.0, 0.0); glVertex3f(0, 0, -2.0);
-	glTexCoord2f(1.0, 0.0); glVertex3f(1.0, 0.0, -3.0);
-	glTexCoord2f(1.0, 1.0); glVertex3f(1.0, 1.0, -3.0);
-	glTexCoord2f(0.0, 1.0); glVertex3f(0.0, 1.0, -2.0);
-	glEnd();
-    */
-
-    for (int i = 0; i < 50; ++i)
+    //Runs for the three shapes
+    
+    for (int i = 0; i < NUM_SAMPLES; ++i)
     {
         char buf[256];
         glClear(GL_COLOR_BUFFER_BIT);
@@ -108,6 +114,32 @@ void saveData()
         drawCube();
         glFlush();
         std::sprintf(buf, "cube_%d.bmp", i+1);
+        saveBitmap(buf);
+    }
+
+    for (int i = 0; i < NUM_SAMPLES; ++i)
+    {
+        char buf[256];
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        
+        applyRandomPose();
+        drawCone();
+        glFlush();
+        std::sprintf(buf, "cone_%d.bmp", i+1);
+        saveBitmap(buf);
+    }
+    
+    for (int i = 0; i < NUM_SAMPLES; ++i)
+    {
+        char buf[256];
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        
+        applyRandomPose();
+        drawSphere();
+        glFlush();
+        std::sprintf(buf, "sphere_%d.bmp", i+1);
         saveBitmap(buf);
     };
 
@@ -157,6 +189,147 @@ void drawCube()
     glEnd();
 }
 
+void drawCone()
+{
+    glColor3f(1.0, 1.0, 1.0);
+    
+    glBegin(GL_QUADS);
+        //So the southern third of the Earth is our cone base
+        //How about 100 divisions just because
+        for (int i = 0; i < 100; ++i)
+        {
+            float lon = i*360.0/100.0;
+            float x, y, u, v;
+            
+            x = cosd(lon)*0.5;
+            y = sind(lon)*0.5;
+            u = lon / 360.0;
+            v = 1.0/3.0;
+            glTexCoord2f(u, v);
+            glVertex3f(x, y, 0.5);
+            
+            lon += 360.0/100.0;
+            x = cosd(lon)*0.5;
+            y = sind(lon)*0.5;
+            u = lon / 360.0;
+            v = 1.0/3.0;
+            glTexCoord2f(u, v);
+            glVertex3f(x, y, 0.5);
+            
+            x = cosd(lon)*0.5;
+            y = sind(lon)*0.5;
+            u = lon / 360.0;
+            v = 0;
+            glTexCoord2f(u, v);
+            glVertex3f(0, 0, 0.5);
+            
+            lon -= 360.0/100.0;
+            x = cosd(lon)*0.5;
+            y = sind(lon)*0.5;
+            u = lon / 360.0;
+            v = 0;
+            glTexCoord2f(u, v);
+            glVertex3f(0, 0, 0.5);
+            
+        }
+        
+        //Inefficient code here, but now let's generate
+        //the upper part of the cone
+        for (int i = 0; i < 100; ++i)
+        {
+            float lon = i*360.0/100.0;
+            float x, y, u, v;
+            
+            x = cosd(lon)*0.5;
+            y = sind(lon)*0.5;
+            u = lon / 360.0;
+            v = 1.0/3.0;
+            glTexCoord2f(u, v);
+            glVertex3f(x, y, 0.5);
+            
+            lon += 360.0/100.0;
+            x = cosd(lon)*0.5;
+            y = sind(lon)*0.5;
+            u = lon / 360.0;
+            v = 1.0/3.0;
+            glTexCoord2f(u, v);
+            glVertex3f(x, y, 0.5);
+            
+            x = cosd(lon)*0.5;
+            y = sind(lon)*0.5;
+            u = lon / 360.0;
+            v = 1;
+            glTexCoord2f(u, v);
+            glVertex3f(0, 0, -0.5);
+            
+            lon -= 360.0/100.0;
+            x = cosd(lon)*0.5;
+            y = sind(lon)*0.5;
+            u = lon / 360.0;
+            v = 1;
+            glTexCoord2f(u, v);
+            glVertex3f(0, 0, -0.5);
+        }
+    
+    glEnd();
+    
+}
+
+void drawSphere()
+{
+    glColor3f(1.0, 1.0, 1.0);
+    
+    //Let's make 100 divisions of longitude
+    //and 20 divisions of latitude
+    glBegin(GL_QUADS);
+        for (int i = 0; i < 20; i++)
+        {
+            for (int j = 0; j < 100; j++)
+            {
+                float curLat = 90 - i*180.0/20;
+                float curLon = j*360.0/100.0;
+                float u,v;
+                float x, y, z;
+                
+                x = 0.5*cosd(curLat)*cosd(curLon);
+                y = 0.5*cosd(curLat)*sind(curLon);
+                z = 0.5*sind(curLat);
+                u = curLon / 360.0;
+                v = (curLat + 90) / 180.0;
+                glTexCoord2f(u, v);
+                glVertex3f(x, y, z);
+                
+                curLon += 360.0/100;
+                x = 0.5*cosd(curLat)*cosd(curLon);
+                y = 0.5*cosd(curLat)*sind(curLon);
+                z = 0.5*sind(curLat);
+                u = curLon / 360.0;
+                v = (curLat + 90) / 180.0;
+                glTexCoord2f(u, v);
+                glVertex3f(x, y, z);
+                
+                curLat -= 180.0/20;
+                x = 0.5*cosd(curLat)*cosd(curLon);
+                y = 0.5*cosd(curLat)*sind(curLon);
+                z = 0.5*sind(curLat);
+                u = curLon / 360.0;
+                v = (curLat + 90) / 180.0;
+                glTexCoord2f(u, v);
+                glVertex3f(x, y, z);
+                
+                curLon -= 360.0/100;
+                x = 0.5*cosd(curLat)*cosd(curLon);
+                y = 0.5*cosd(curLat)*sind(curLon);
+                z = 0.5*sind(curLat);
+                u = curLon / 360.0;
+                v = (curLat + 90) / 180.0;
+                glTexCoord2f(u, v);
+                glVertex3f(x, y, z);
+            }
+        }
+    glEnd();
+}
+
 void applyRandomPose()
 {
    GLfloat x, y, z, yaw, pitch, roll;
@@ -166,6 +339,8 @@ void applyRandomPose()
    yaw = randFloat()*360;
    pitch = randFloat()*180 - 90.0;
    roll = randFloat()*180;
+   
+   std::printf("%f %f %f %f %f %f\n", x, y, z, yaw, pitch, roll);
    
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
@@ -178,7 +353,7 @@ void applyRandomPose()
 
 int main(int argc, char* argv[])
 {
-    std::srand(std::time(NULL));
+    std::srand(68672016);
 	glutInit(&argc, argv);
 	glutInitWindowSize(IMAGE_DIM, IMAGE_DIM);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH);
@@ -203,6 +378,7 @@ int main(int argc, char* argv[])
 
 	glutDisplayFunc(display);
 	saveData();
+    //glutMainLoop();
     return 0;
     
 }
