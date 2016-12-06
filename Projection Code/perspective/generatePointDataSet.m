@@ -40,7 +40,7 @@ for ii=1:500
    curRun.x = x;
    curRun.y = y;
    curRun.z = z;
-   curRun.Points = myP(1:2, :);
+   curRun.Points = myP(1:2, :) ./ repmat(myP(4, :), 2, 1);
    curRun.Occluded = occ;
    cube.Runs = [cube.Runs; curRun];
    waitbar(ii ./ 500, h, sprintf('Cube Runs... %d/500', ii));
@@ -69,7 +69,7 @@ for ii=1:500
    curRun.x = x;
    curRun.y = y;
    curRun.z = z;
-   curRun.Points = myP(1:2, :);
+   curRun.Points = myP(1:2, :) ./ repmat(myP(4, :), 2, 1);
    curRun.Occluded = occ;
    cone.Runs = [cone.Runs; curRun];
    waitbar(ii ./ 500, h, sprintf('Cone Runs... %d/500', ii));
@@ -98,7 +98,7 @@ for ii=1:500
    curRun.x = x;
    curRun.y = y;
    curRun.z = z;
-   curRun.Points = myP(1:2, :);
+   curRun.Points = myP(1:2, :) ./ repmat(myP(4, :), 2, 1);
    curRun.Occluded = occ;
    sphere.Runs = [sphere.Runs; curRun];
    waitbar(ii ./ 500, h, sprintf('Sphere Runs... %d/500', ii));
