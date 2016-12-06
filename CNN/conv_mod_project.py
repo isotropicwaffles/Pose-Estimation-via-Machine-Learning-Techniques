@@ -5,11 +5,13 @@ import sys
 import math
 import time
 
-DATA_PATH = 'art_data/'
+PIXEL_WIDTH = '256'
+SHAPE = 'cone'
+DATA_PATH = '../Input_Data/images/data' + PIXEL_WIDTH +'/' + SHAPE +'/'
 DATA_FILE = DATA_PATH + 'art_data.pickle'
-IMAGE_SIZE = 50
+IMAGE_SIZE = 256
 NUM_CHANNELS = 3
-NUM_LABELS = 11
+NUM_LABELS = 6
 INCLUDE_TEST_SET = False
 
 class ArtistConvNet:
@@ -18,8 +20,7 @@ class ArtistConvNet:
 		and building the graph'''
 		self.load_pickled_dataset(DATA_FILE)
 		self.invariance = invariance
-		if invariance:
-			self.load_invariance_datasets()
+
 		self.graph = tf.Graph()
 		self.define_tensorflow_graph(filename)
 
@@ -114,17 +115,30 @@ class ArtistConvNet:
 				
 				# Layer 3
 				shape = hidden.get_shape().as_list()
+
 				reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
+                               
 				hidden = tf.nn.relu(tf.matmul(reshape, layer3_weights) + layer3_biases)
-				hidden = tf.nn.dropout(hidden, dropout_keep_prob)
+				#hidden = tf.nn.dropout(hidden, dropout_keep_prob)
 				
-				# Layer 4 
+
 				output = tf.matmul(hidden, layer4_weights) + layer4_biases
+
 				return output
 
 			# Training computation
 			logits = network_model(tf_train_batch)
-			loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels))
+
+                        print logits
+
+    			for i in xrange(0, len(logits)-1):
+          			logits[i][3] = logits[i][3]*2*math.pi/180
+          			logits[i][4] = logits[i][4]*2*math.pi/180
+          			logits[i][5] = logits[i][5]*2*math.pi/180
+                        print logits
+			#loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels))
+                        loss = tf.sqrt(tf.reduce_mean(tf.square(tf.sub(tf_train_labels, logits))))
+
 
 			# Add weight decay penalty
 			loss = loss + weight_decay_penalty([layer3_weights, layer4_weights], weight_penalty)
@@ -133,10 +147,10 @@ class ArtistConvNet:
 			optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
 
 			# Predictions for the training, validation, and test data.
-			batch_prediction = tf.nn.softmax(logits)
-			valid_prediction = tf.nn.softmax(network_model(tf_valid_dataset))
-			test_prediction = tf.nn.softmax(network_model(tf_test_dataset))
-			train_prediction = tf.nn.softmax(network_model(tf_train_dataset))
+			batch_prediction = logits
+			valid_prediction = network_model(tf_valid_dataset)
+			test_prediction = network_model(tf_test_dataset)
+			train_prediction = network_model(tf_train_dataset)
 			
                         
 			def train_model(num_steps=num_training_steps):
@@ -149,13 +163,13 @@ class ArtistConvNet:
 					l_batch_train_acc = list()
 					l_val_acc = list()
 					l_train_acc = list()
-					#l_test_acc = list()
+					l_test_acc = list()
 
 					for step in range(num_steps):
 						offset = (step * batch_size) % (self.train_Y.shape[0] - batch_size)
 						batch_data = self.train_X[offset:(offset + batch_size), :, :, :]
 						batch_labels = self.train_Y[offset:(offset + batch_size), :]
-						
+						#print batch_labels
 						# Data to feed into the placeholder variables in the tensorflow graph
 						feed_dict = {tf_train_batch : batch_data, tf_train_labels : batch_labels, 
 									 dropout_keep_prob: dropout_prob}
@@ -168,10 +182,10 @@ class ArtistConvNet:
                                                         #test_preds = session.run(test_prediction, feed_dict={tf_test_dataset: self.test_X, dropout_keep_prob : 1.0})
 							print ''
 							print('Batch loss at step %d: %f' % (step, l))
-							print('Batch training accuracy: %.1f%%' % accuracy(predictions, batch_labels))
-							print('Validation accuracy: %.1f%%' % accuracy(val_preds, self.val_Y))
-							#print('Test accuracy: %.1f%%' % accuracy(test_preds, self.test_Y))
-							print('Full train accuracy: %.1f%%' % accuracy(train_preds, self.train_Y))
+							print('Batch training Error: %.1f' % accuracy(predictions, batch_labels))
+							print('Validation Error: %.1f' % accuracy(val_preds, self.val_Y))
+							#print('Test Error: %.1f' % accuracy(test_preds, self.test_Y))
+							print('Full train Error: %.1f' % accuracy(train_preds, self.train_Y))
 							l_step.append(step)
                                                         l_batch_loss.append(l)
                                                         l_batch_train_acc.append(accuracy(predictions, batch_labels))
@@ -187,24 +201,7 @@ class ArtistConvNet:
                                         results = {'step': l_step,'batch_loss': l_batch_loss,'batch_train_acc': l_batch_train_acc,'val_acc': l_val_acc,'train_acc': l_train_acc}
                                         
 
-                                                        
-					# This code is for the final question
-					if self.invariance:
-						print "\n Obtaining final results on invariance sets!"
-						sets = [self.val_X, self.translated_val_X, self.bright_val_X, self.dark_val_X, 
-								self.high_contrast_val_X, self.low_contrast_val_X, self.flipped_val_X, 
-								self.inverted_val_X,]
-						set_names = ['normal validation', 'translated', 'brightened', 'darkened', 
-									 'high contrast', 'low contrast', 'flipped', 'inverted']
-						
-						for i in range(len(sets)):
-							preds = session.run(test_prediction, 
-								feed_dict={tf_test_dataset: sets[i], dropout_keep_prob : 1.0})
-							print 'Accuracy on', set_names[i], 'data: %.1f%%' % accuracy(preds, self.val_Y)
 
-							# save final preds to make confusion matrix
-							if i == 0:
-								self.final_val_preds = preds
                                         return results
                                 
 			# save train model function so it can be called later
@@ -217,7 +214,7 @@ class ArtistConvNet:
 			
 
 	def load_pickled_dataset(self, pickle_file):
-		print "Loading datasets..."
+		print "Loading datasetsc..."
 		with open(pickle_file, 'rb') as f:
 			save = pickle.load(f)
 			self.train_X = save['train_data']
@@ -233,24 +230,16 @@ class ArtistConvNet:
 		print 'Validation set', self.val_X.shape, self.val_Y.shape
 		if INCLUDE_TEST_SET: print 'Test set', self.test_X.shape, self.test_Y.shape
 
-	def load_invariance_datasets(self):
-		with open(DATA_PATH + 'invariance_art_data.pickle', 'rb') as f:
-			save = pickle.load(f)
-			self.translated_val_X = save['translated_val_data']
-			self.flipped_val_X = save['flipped_val_data']
-			self.inverted_val_X = save['inverted_val_data']
-			self.bright_val_X = save['bright_val_data']
-			self.dark_val_X = save['dark_val_data']
-			self.high_contrast_val_X = save['high_contrast_val_data']
-			self.low_contrast_val_X = save['low_contrast_val_data']
-			del save  
+	
 
 def weight_decay_penalty(weights, penalty):
 	return penalty * sum([tf.nn.l2_loss(w) for w in weights])
 
 def accuracy(predictions, labels):
-  return (100.0 * np.sum(np.argmax(predictions, 1) == np.argmax(labels, 1))
-          / predictions.shape[0])
+  #print predictions
+  #print labels
+  #print predictions-labels
+  return np.sqrt(np.sum(np.square(predictions-labels)))
 
 if __name__ == '__main__':
 	invariance = False
