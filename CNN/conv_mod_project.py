@@ -11,7 +11,7 @@ DATA_PATH = '../Input_Data/images/data' + PIXEL_WIDTH +'/' + SHAPE +'/'
 DATA_FILE = DATA_PATH + 'art_data.pickle'
 IMAGE_SIZE = 256
 NUM_CHANNELS = 3
-NUM_LABELS = 6
+NUM_DOF = 6
 INCLUDE_TEST_SET = False
 
 class ArtistConvNet:
@@ -31,6 +31,7 @@ class ArtistConvNet:
          		save = pickle.load(f)
 
 			# Hyperparameters
+			num_hidden_layers = save['num_hidden_layers']
 			batch_size = save['batch_size']
 			learning_rate = save['learning_rate']
 			layer1_filter_size = save['layer1_filter_size']
@@ -41,6 +42,10 @@ class ArtistConvNet:
 			layer2_stride = save['layer2_stride']
 			layer3_num_hidden = save['layer3_num_hidden']
 			layer4_num_hidden = save['layer4_num_hidden']
+			layer5_num_hidden = save['layer5_num_hidden']
+			layer6_num_hidden = save['layer6_num_hidden']
+			layer7_num_hidden = save['layer7_num_hidden']
+			layer8_num_hidden = save['layer8_num_hidden']
 			num_training_steps = save['num_training_steps']
 
 			# Add max pooling
@@ -58,7 +63,7 @@ class ArtistConvNet:
 			# Input data
 			tf_train_batch = tf.placeholder(
 			    tf.float32, shape=(batch_size, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS))
-			tf_train_labels = tf.placeholder(tf.float32, shape=(batch_size, NUM_LABELS))
+			tf_train_labels = tf.placeholder(tf.float32, shape=(batch_size, NUM_DOF))
 			tf_valid_dataset = tf.constant(self.val_X)
 			tf_test_dataset = tf.placeholder(
 			    tf.float32, shape=[len(self.val_X), IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS])
@@ -80,19 +85,61 @@ class ArtistConvNet:
 				[layer2_filter_size, layer2_filter_size, layer1_depth, layer2_depth], stddev=0.1))
 			layer2_biases = tf.Variable(tf.constant(1.0, shape=[layer2_depth]))
 			layer2_feat_map_size = int(math.ceil(float(layer1_feat_map_size) / layer2_stride))
+
 			if pooling:
 				layer2_feat_map_size = int(math.ceil(float(layer2_feat_map_size) / layer2_pool_stride))
-
+                        
 			layer3_weights = tf.Variable(tf.truncated_normal(
 				[layer2_feat_map_size * layer2_feat_map_size * layer2_depth, layer3_num_hidden], stddev=0.1))
 			layer3_biases = tf.Variable(tf.constant(1.0, shape=[layer3_num_hidden]))
 
-			layer4_weights = tf.Variable(tf.truncated_normal(
-			  [layer4_num_hidden, NUM_LABELS], stddev=0.1))
-			layer4_biases = tf.Variable(tf.constant(1.0, shape=[NUM_LABELS]))
+                        #Hidden Layer Stuff
+                        if num_hidden_layers > 1:
+                                layer4_weights = tf.Variable(tf.truncated_normal(
+				[layer3_num_hidden, layer4_num_hidden], stddev=0.1))
+                                layer4_biases = tf.Variable(tf.constant(1.0, shape=[layer4_num_hidden]))
+
+                                if num_hidden_layers > 2:
+                                        layer5_weights = tf.Variable(tf.truncated_normal(
+                                        [layer4_num_hidden, layer5_num_hidden], stddev=0.1))
+                                        layer5_biases = tf.Variable(tf.constant(1.0, shape=[layer5_num_hidden]))
+
+                                        if num_hidden_layers > 3:
+                                                layer6_weights = tf.Variable(tf.truncated_normal(
+                                                [layer5_num_hidden, layer6_num_hidden], stddev=0.1))
+                                                layer6_biases = tf.Variable(tf.constant(1.0, shape=[layer6_num_hidden]))
+
+                                                if num_hidden_layers > 4:
+                                                        layer7_weights = tf.Variable(tf.truncated_normal(
+                                                        [layer6_num_hidden, layer7_num_hidden], stddev=0.1))
+                                                        layer7_biases = tf.Variable(tf.constant(1.0, shape=[layer7_num_hidden]))
+
+                        #Output layer stuff
+                        if num_hidden_layers > 0:
+                                layer8_weights = tf.Variable(tf.truncated_normal(
+                        	  [layer3_num_hidden, NUM_DOF], stddev=0.1))
+
+                                if num_hidden_layers > 1:
+                                        layer8_weights = tf.Variable(tf.truncated_normal(
+                                          [layer4_num_hidden, NUM_DOF], stddev=0.1))
+
+                                        if num_hidden_layers > 2:
+                                                layer8_weights = tf.Variable(tf.truncated_normal(
+                                                  [layer5_num_hidden, NUM_DOF], stddev=0.1))
+
+                                                if num_hidden_layers > 3:
+                                                        layer8_weights = tf.Variable(tf.truncated_normal(
+                                                          [layer6_num_hidden, NUM_DOF], stddev=0.1))
+
+                                                        if num_hidden_layers > 4:
+                                                                layer8_weights = tf.Variable(tf.truncated_normal(
+                                                                  [layer7_num_hidden, NUM_DOF], stddev=0.1))
+
+
+			layer8_biases = tf.Variable(tf.constant(1.0, shape=[NUM_DOF]))
 
 			# Model
-			def network_model(data):
+			def network_model(data,num_hidden_layers):
 				'''Define the actual network architecture'''
 
 				# Layer 1
@@ -119,23 +166,44 @@ class ArtistConvNet:
 				reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
                                
 				hidden = tf.nn.relu(tf.matmul(reshape, layer3_weights) + layer3_biases)
+
+                                if num_hidden_layers > 1:
+                                        # Layer 4
+                                        shape = hidden.get_shape().as_list()
+
+                                        reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
+                                       
+                                        hidden = tf.nn.relu(tf.matmul(reshape, layer4_weights) + layer4_biases)
+
+                                        if num_hidden_layers > 2:
+                                                # Layer 5
+                                                shape = hidden.get_shape().as_list()
+                                                reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
+                                                hidden = tf.nn.relu(tf.matmul(reshape, layer5_weights) + layer5_biases)
+
+                                                if num_hidden_layers > 3:
+                                                        # Layer 6
+                                                        shape = hidden.get_shape().as_list()
+                                                        reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
+                                                        hidden = tf.nn.relu(tf.matmul(reshape, layer6_weights) + layer6_biases)
+
+                                                if num_hidden_layers > 4:
+                                                        # Layer 7
+                                                        shape = hidden.get_shape().as_list()
+                                                        reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
+                                                        hidden = tf.nn.relu(tf.matmul(reshape, layer7_weights) + layer7_biases)
+
+				
 				#hidden = tf.nn.dropout(hidden, dropout_keep_prob)
 				
 
-				output = tf.matmul(hidden, layer4_weights) + layer4_biases
+				output = tf.matmul(hidden, layer8_weights) + layer8_biases
 
 				return output
 
 			# Training computation
-			logits = network_model(tf_train_batch)
+			logits = network_model(tf_train_batch,num_hidden_layers)
 
-                        print logits
-
-    			for i in xrange(0, len(logits)-1):
-          			logits[i][3] = logits[i][3]*2*math.pi/180
-          			logits[i][4] = logits[i][4]*2*math.pi/180
-          			logits[i][5] = logits[i][5]*2*math.pi/180
-                        print logits
 			#loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels))
                         loss = tf.sqrt(tf.reduce_mean(tf.square(tf.sub(tf_train_labels, logits))))
 
@@ -148,9 +216,9 @@ class ArtistConvNet:
 
 			# Predictions for the training, validation, and test data.
 			batch_prediction = logits
-			valid_prediction = network_model(tf_valid_dataset)
-			test_prediction = network_model(tf_test_dataset)
-			train_prediction = network_model(tf_train_dataset)
+			valid_prediction = network_model(tf_valid_dataset,num_hidden_layers)
+			test_prediction = network_model(tf_test_dataset,num_hidden_layers)
+			train_prediction = network_model(tf_train_dataset,num_hidden_layers)
 			
                         
 			def train_model(num_steps=num_training_steps):
@@ -198,7 +266,7 @@ class ArtistConvNet:
                                                         #print ', '.join(map(str, l_val_acc))
                                                         #print ', '.join(map(str, l_train_acc))
                                                         
-                                        results = {'step': l_step,'batch_loss': l_batch_loss,'batch_train_acc': l_batch_train_acc,'val_acc': l_val_acc,'train_acc': l_train_acc}
+                                        results = {'train_mse': accuracy(train_preds, self.train_Y),'val_mse': accuracy(val_preds, self.val_Y)}
                                         
 
 
@@ -239,7 +307,7 @@ def accuracy(predictions, labels):
   #print predictions
   #print labels
   #print predictions-labels
-  return np.sqrt(np.sum(np.square(predictions-labels)))
+  return np.sqrt(np.mean(np.square(predictions-labels)))
 
 if __name__ == '__main__':
 	invariance = False
