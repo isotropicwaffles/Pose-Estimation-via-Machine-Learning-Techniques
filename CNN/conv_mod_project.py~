@@ -324,7 +324,7 @@ def accuracy(predictions, labels):
   #print predictions
   #print labels
   #print predictions-labels
-  return np.sqrt(np.mean(np.square(predictions-labels)))
+  return np.sqrt(np.sum(np.square(predictions-labels)))
 
 if __name__ == '__main__':
 	invariance = False

@@ -183,7 +183,7 @@ def save_pickle_file(pickle_file, save_dict):
 	print "Datasets saved to file", DATA_PATH + pickle_file
 
 if __name__ == '__main__':
-  print "Making image dataset and saving it to:", DATA_PATH
+  print "Making artist dataset and saving it to:", DATA_PATH
   print "To change this and other settings, edit the flags at the top of this file."
 
   make_basic_datasets()

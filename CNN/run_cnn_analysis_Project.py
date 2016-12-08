@@ -17,10 +17,10 @@ def run_all_cnn_analysis():
 
   
   # Hyperparameters arrays
-  num_hidden_layers_array =[5,1]
-  num_conv_layers_array =[3,1]
-  batch_size_array = [10]
-  learning_rate_array = [.01]
+  num_hidden_layers_array =[3]
+  num_conv_layers_array =[2]
+  batch_size_array = [100]
+  learning_rate_array = [.1]
   conv_layer1_filter_size_array = [5] 
   conv_layer1_depth_array = [16]
   conv_layer1_stride_array = [2] 
@@ -35,10 +35,10 @@ def run_all_cnn_analysis():
   layer3_num_hidden_array = [64] 
   layer4_num_hidden_array = [64]
   layer5_num_hidden_array = [64] 
-  num_training_steps_array = [5] 
+  num_training_steps_array = [5000] 
   
   # Add max pooling arrays
-  pooling_array = [True]
+  pooling_array = [False]
   conv_layer1_pool_filter_size_array = [2]
   conv_layer1_pool_stride_array = [2]
   conv_layer2_pool_filter_size_array = [2]

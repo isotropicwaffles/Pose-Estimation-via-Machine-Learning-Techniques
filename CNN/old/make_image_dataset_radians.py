@@ -23,7 +23,8 @@ NUM_DOF = 6
 PARTITION_TEST = True
 
 def load_artist(artist):
-  print "Loading images for " + PIXEL_WIDTH + " pixel " + SHAPE
+  '''Load the images for a single artist.'''
+  print "Loading images for artist", artist
   folder = DATA_PATH
   image_files = [x for x in os.listdir(folder) if '.bmp' in x]
   #print image_files 
@@ -99,13 +100,11 @@ def make_basic_datasets():
 	
         #    print d[1] # 248
 	for label,artist in enumerate(artists):
-		# load in the images and poses
+		# create a one-hot encoding of this artist's label
+
 		artist_data,num_indices = load_artist(artist)
 		artist_label =  d[num_indices]
-		#randomize the data		
-		train_data, train_labels = randomize(train_data, train_labels)		
-                #print artist_label
-		#scale the data
+                print artist_label
 		artist_data = scale_pixel_values(artist_data)
 		num_paintings = len(artist_data)
 
@@ -143,8 +142,8 @@ def make_basic_datasets():
 	val_data, val_labels = trim_dataset_arrays(val_data, val_labels, num_val)
 
 	# shuffle the data to distribute samples from artists randomly
-	#train_data, train_labels = randomize(train_data, train_labels)
-	#val_data, val_labels = randomize(val_data, val_labels)
+	train_data, train_labels = randomize(train_data, train_labels)
+	val_data, val_labels = randomize(val_data, val_labels)
 
 	print 'Training set:', train_data.shape, train_labels.shape
 	print 'Validation:', val_data.shape, val_labels.shape
@@ -183,7 +182,7 @@ def save_pickle_file(pickle_file, save_dict):
 	print "Datasets saved to file", DATA_PATH + pickle_file
 
 if __name__ == '__main__':
-  print "Making image dataset and saving it to:", DATA_PATH
+  print "Making artist dataset and saving it to:", DATA_PATH
   print "To change this and other settings, edit the flags at the top of this file."
 
   make_basic_datasets()

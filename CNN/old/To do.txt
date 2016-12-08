@@ -1,0 +1,5 @@
+replace softmax with standard regression
+
+write script to perform optimization on hyper parameters
+
+TRY 3 different archectures
