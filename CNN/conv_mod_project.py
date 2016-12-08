@@ -32,29 +32,33 @@ class ArtistConvNet:
 
 			# Hyperparameters
 			num_hidden_layers = save['num_hidden_layers']
+			num_conv_layers = save['num_conv_layers']
 			batch_size = save['batch_size']
 			learning_rate = save['learning_rate']
-			layer1_filter_size = save['layer1_filter_size']
-			layer1_depth = save['layer1_depth']
-			layer1_stride = save['layer1_stride']
-			layer2_filter_size = save['layer2_filter_size']
-			layer2_depth = save['layer2_depth']
-			layer2_stride = save['layer2_stride']
+			conv_layer1_filter_size = save['conv_layer1_filter_size']
+			conv_layer1_depth = save['conv_layer1_depth']
+			conv_layer1_stride = save['conv_layer1_stride']
+			conv_layer2_filter_size = save['conv_layer2_filter_size']
+			conv_layer2_depth = save['conv_layer2_depth']
+			conv_layer2_stride = save['conv_layer2_stride']
+			conv_layer3_filter_size = save['conv_layer3_filter_size']
+			conv_layer3_depth = save['conv_layer3_depth']
+			conv_layer3_stride = save['conv_layer3_stride']
+			layer1_num_hidden = save['layer1_num_hidden']
+			layer2_num_hidden = save['layer2_num_hidden']
 			layer3_num_hidden = save['layer3_num_hidden']
 			layer4_num_hidden = save['layer4_num_hidden']
 			layer5_num_hidden = save['layer5_num_hidden']
-			layer6_num_hidden = save['layer6_num_hidden']
-			layer7_num_hidden = save['layer7_num_hidden']
-			layer8_num_hidden = save['layer8_num_hidden']
 			num_training_steps = save['num_training_steps']
 
 			# Add max pooling
 			pooling = save['pooling']
-			layer1_pool_filter_size = save['layer1_pool_filter_size']
-			layer1_pool_stride = save['layer1_pool_stride']
-			layer2_pool_filter_size = save['layer2_pool_filter_size']
-			layer2_pool_stride = save['layer2_pool_stride']
-
+			conv_layer1_pool_filter_size = save['conv_layer1_pool_filter_size']
+			conv_layer1_pool_stride = save['conv_layer1_pool_stride']
+			conv_layer2_pool_filter_size = save['conv_layer2_pool_filter_size']
+			conv_layer2_pool_stride = save['conv_layer2_pool_stride']
+			conv_layer3_pool_filter_size = save['conv_layer3_pool_filter_size']
+			conv_layer3_pool_stride = save['conv_layer3_pool_stride']
 			# Enable dropout and weight decay normalization
 			dropout_prob = save['dropout_prob'] # set to < 1.0 to apply dropout, 1.0 to remove
 			weight_penalty = save['weight_penalty'] # set to > 0.0 to apply weight penalty, 0.0 to remove
@@ -72,153 +76,185 @@ class ArtistConvNet:
 
 			# Implement dropout
 			dropout_keep_prob = tf.placeholder(tf.float32)
-
+			
+			layer_size_going_to_hidden = IMAGE_SIZE*IMAGE_SIZE*NUM_CHANNELS
 			# Network weights/parameters that will be learned
+			if num_conv_layers > 0:
+				conv_layer1_weights = tf.Variable(tf.truncated_normal(
+					[conv_layer1_filter_size, conv_layer1_filter_size, NUM_CHANNELS, conv_layer1_depth], stddev=0.1))
+				conv_layer1_biases = tf.Variable(tf.zeros([conv_layer1_depth]))
+				conv_layer1_feat_map_size = int(math.ceil(float(IMAGE_SIZE) / conv_layer1_stride))
+				if pooling:
+					conv_layer1_feat_map_size = int(math.ceil(float(conv_layer1_feat_map_size) / conv_layer1_pool_stride))
+				layer_size_going_to_hidden = conv_layer1_feat_map_size * conv_layer1_feat_map_size * conv_layer1_depth
+
+				if num_conv_layers > 1:
+					conv_layer2_weights = tf.Variable(tf.truncated_normal(
+						[conv_layer2_filter_size, conv_layer2_filter_size, conv_layer1_depth, conv_layer2_depth], stddev=0.1))
+					conv_layer2_biases = tf.Variable(tf.constant(1.0, shape=[conv_layer2_depth]))
+					conv_layer2_feat_map_size = int(math.ceil(float(conv_layer1_feat_map_size) / conv_layer2_stride))
+					if pooling:
+						conv_layer2_feat_map_size = int(math.ceil(float(conv_layer2_feat_map_size) / conv_layer2_pool_stride))
+					layer_size_going_to_hidden = conv_layer2_feat_map_size * conv_layer2_feat_map_size * conv_layer2_depth
+						
+					if num_conv_layers > 2:
+						conv_layer3_weights = tf.Variable(tf.truncated_normal(
+							[conv_layer3_filter_size, conv_layer3_filter_size, conv_layer2_depth, conv_layer3_depth], stddev=0.1))
+						conv_layer3_biases = tf.Variable(tf.constant(1.0, shape=[conv_layer3_depth]))
+						conv_layer3_feat_map_size = int(math.ceil(float(conv_layer2_feat_map_size) / conv_layer3_stride))
+						if pooling:
+							conv_layer3_feat_map_size = int(math.ceil(float(conv_layer3_feat_map_size) / conv_layer3_pool_stride))
+						layer_size_going_to_hidden =conv_layer3_feat_map_size * conv_layer3_feat_map_size * conv_layer3_depth
+					
+				
 			layer1_weights = tf.Variable(tf.truncated_normal(
-				[layer1_filter_size, layer1_filter_size, NUM_CHANNELS, layer1_depth], stddev=0.1))
-			layer1_biases = tf.Variable(tf.zeros([layer1_depth]))
-			layer1_feat_map_size = int(math.ceil(float(IMAGE_SIZE) / layer1_stride))
-			if pooling:
-				layer1_feat_map_size = int(math.ceil(float(layer1_feat_map_size) / layer1_pool_stride))
+				[layer_size_going_to_hidden, layer1_num_hidden], stddev=0.1))
+			layer1_biases = tf.Variable(tf.constant(1.0, shape=[layer1_num_hidden]))
+			weights_to_penalize = [layer1_weights]
+			
+			if num_hidden_layers > 1:
+				layer2_weights = tf.Variable(tf.truncated_normal(
+				[layer1_num_hidden, layer2_num_hidden], stddev=0.1))
+				layer2_biases = tf.Variable(tf.constant(1.0, shape=[layer2_num_hidden]))
+				weights_to_penalize = [layer1_weights, layer2_weights]
 
-			layer2_weights = tf.Variable(tf.truncated_normal(
-				[layer2_filter_size, layer2_filter_size, layer1_depth, layer2_depth], stddev=0.1))
-			layer2_biases = tf.Variable(tf.constant(1.0, shape=[layer2_depth]))
-			layer2_feat_map_size = int(math.ceil(float(layer1_feat_map_size) / layer2_stride))
+				if num_hidden_layers > 2:
+					layer3_weights = tf.Variable(tf.truncated_normal(
+					[layer2_num_hidden, layer3_num_hidden], stddev=0.1))
+					layer3_biases = tf.Variable(tf.constant(1.0, shape=[layer3_num_hidden]))
+					weights_to_pen = [layer1_weights, layer2_weights, layer3_weights]
 
-			if pooling:
-				layer2_feat_map_size = int(math.ceil(float(layer2_feat_map_size) / layer2_pool_stride))
-                        
-			layer3_weights = tf.Variable(tf.truncated_normal(
-				[layer2_feat_map_size * layer2_feat_map_size * layer2_depth, layer3_num_hidden], stddev=0.1))
-			layer3_biases = tf.Variable(tf.constant(1.0, shape=[layer3_num_hidden]))
+					if num_hidden_layers > 3:
+						layer4_weights = tf.Variable(tf.truncated_normal(
+						[layer3_num_hidden, layer4_num_hidden], stddev=0.1))
+						layer4_biases = tf.Variable(tf.constant(1.0, shape=[layer4_num_hidden]))
+						weights_to_pen = [layer1_weights, layer2_weights, layer3_weights,layer4_weights]
 
-                        #Hidden Layer Stuff
-                        if num_hidden_layers > 1:
-                                layer4_weights = tf.Variable(tf.truncated_normal(
-				[layer3_num_hidden, layer4_num_hidden], stddev=0.1))
-                                layer4_biases = tf.Variable(tf.constant(1.0, shape=[layer4_num_hidden]))
-
-                                if num_hidden_layers > 2:
-                                        layer5_weights = tf.Variable(tf.truncated_normal(
-                                        [layer4_num_hidden, layer5_num_hidden], stddev=0.1))
-                                        layer5_biases = tf.Variable(tf.constant(1.0, shape=[layer5_num_hidden]))
-
-                                        if num_hidden_layers > 3:
-                                                layer6_weights = tf.Variable(tf.truncated_normal(
-                                                [layer5_num_hidden, layer6_num_hidden], stddev=0.1))
-                                                layer6_biases = tf.Variable(tf.constant(1.0, shape=[layer6_num_hidden]))
-
-                                                if num_hidden_layers > 4:
-                                                        layer7_weights = tf.Variable(tf.truncated_normal(
-                                                        [layer6_num_hidden, layer7_num_hidden], stddev=0.1))
-                                                        layer7_biases = tf.Variable(tf.constant(1.0, shape=[layer7_num_hidden]))
-
-                        #Output layer stuff
-                        if num_hidden_layers > 0:
-                                layer8_weights = tf.Variable(tf.truncated_normal(
-                        	  [layer3_num_hidden, NUM_DOF], stddev=0.1))
-
-                                if num_hidden_layers > 1:
-                                        layer8_weights = tf.Variable(tf.truncated_normal(
-                                          [layer4_num_hidden, NUM_DOF], stddev=0.1))
-
-                                        if num_hidden_layers > 2:
-                                                layer8_weights = tf.Variable(tf.truncated_normal(
-                                                  [layer5_num_hidden, NUM_DOF], stddev=0.1))
-
-                                                if num_hidden_layers > 3:
-                                                        layer8_weights = tf.Variable(tf.truncated_normal(
-                                                          [layer6_num_hidden, NUM_DOF], stddev=0.1))
-
-                                                        if num_hidden_layers > 4:
-                                                                layer8_weights = tf.Variable(tf.truncated_normal(
-                                                                  [layer7_num_hidden, NUM_DOF], stddev=0.1))
+						if num_hidden_layers > 4:
+							layer5_weights = tf.Variable(tf.truncated_normal(
+							[layer4_num_hidden, layer5_num_hidden], stddev=0.1))
+							layer5_biases = tf.Variable(tf.constant(1.0, shape=[layer5_num_hidden]))
+							weights_to_pen = [layer1_weights, layer2_weights, layer3_weights,layer4_weights,layer5_weights]
+							
+			if num_hidden_layers > 0:
+				output_weights = tf.Variable(tf.truncated_normal(
+				[layer1_num_hidden, NUM_DOF], stddev=0.1))
+				
+				if num_hidden_layers > 1:
+					output_weights = tf.Variable(tf.truncated_normal(
+					[layer2_num_hidden, NUM_DOF], stddev=0.1))
+					
+					if num_hidden_layers > 2:
+						output_weights = tf.Variable(tf.truncated_normal(
+						[layer3_num_hidden, NUM_DOF], stddev=0.1))
+						if num_hidden_layers > 3:
+							output_weights = tf.Variable(tf.truncated_normal(
+							[layer4_num_hidden, NUM_DOF], stddev=0.1))
+							if num_hidden_layers > 4:
+								output_weights = tf.Variable(tf.truncated_normal(
+								[layer5_num_hidden, NUM_DOF], stddev=0.1))
 
 
-			layer8_biases = tf.Variable(tf.constant(1.0, shape=[NUM_DOF]))
+			output_biases = tf.Variable(tf.constant(1.0, shape=[NUM_DOF]))
 
 			# Model
-			def network_model(data,num_hidden_layers):
+			def network_model(data,num_hidden_layers,num_conv_layers):
 				'''Define the actual network architecture'''
-
-				# Layer 1
-				conv1 = tf.nn.conv2d(data, layer1_weights, [1, layer1_stride, layer1_stride, 1], padding='SAME')
-				hidden = tf.nn.relu(conv1 + layer1_biases)
-
-				if pooling:
-					hidden = tf.nn.max_pool(hidden, ksize=[1, layer1_pool_filter_size, layer1_pool_filter_size, 1], 
-									   strides=[1, layer1_pool_stride, layer1_pool_stride, 1],
-                         			   padding='SAME', name='pool1')
+				if num_conv_layers == 0:
+					shape = data.get_shape().as_list()
+					reshape = tf.reshape(data, [shape[0], shape[1] * shape[2] * shape[3]])
+			
+					hidden = tf.nn.relu(tf.matmul(reshape, layer1_weights) + layer1_biases)
+				else:
+					# Layer 1
+					conv1 = tf.nn.conv2d(data, conv_layer1_weights, [1, conv_layer1_stride, conv_layer1_stride, 1], padding='SAME')
+					hidden = tf.nn.relu(conv1 + conv_layer1_biases)
+					if pooling:
+						hidden = tf.nn.max_pool(hidden, ksize=[1, conv_layer1_pool_filter_size, conv_layer1_pool_filter_size, 1], 
+						strides=[1, conv_layer1_pool_stride, conv_layer1_pool_stride, 1],
+						padding='SAME', name='pool1')
+								
+					if num_conv_layers > 1:
+						# Layer 2
+						conv2 = tf.nn.conv2d(hidden, conv_layer2_weights, [1, conv_layer2_stride, conv_layer2_stride, 1], padding='SAME')
+						hidden = tf.nn.relu(conv2 + conv_layer2_biases)
+						if pooling:
+							hidden = tf.nn.max_pool(hidden, ksize=[1, conv_layer2_pool_filter_size, conv_layer2_pool_filter_size, 1], 
+							strides=[1, conv_layer2_pool_stride, conv_layer2_pool_stride, 1],
+							padding='SAME', name='pool2')
+						
+						if num_conv_layers > 2:
+							# Layer 3
+							conv3 = tf.nn.conv2d(hidden, conv_layer3_weights, [1, conv_layer3_stride, conv_layer3_stride, 1], padding='SAME')
+							hidden = tf.nn.relu(conv3 + conv_layer3_biases)
+							if pooling:
+								hidden = tf.nn.max_pool(hidden, ksize=[1, conv_layer3_pool_filter_size, conv_layer3_pool_filter_size, 1], 
+								strides=[1, conv_layer3_pool_stride, conv_layer3_pool_stride, 1],
+								padding='SAME', name='pool2')
 				
-				# Layer 2
-				conv2 = tf.nn.conv2d(hidden, layer2_weights, [1, layer2_stride, layer2_stride, 1], padding='SAME')
-				hidden = tf.nn.relu(conv2 + layer2_biases)
-
-				if pooling:
-					hidden = tf.nn.max_pool(hidden, ksize=[1, layer2_pool_filter_size, layer2_pool_filter_size, 1], 
-									   strides=[1, layer2_pool_stride, layer2_pool_stride, 1],
-                         			   padding='SAME', name='pool2')
+			
 				
-				# Layer 3
-				shape = hidden.get_shape().as_list()
+					# Layer 1
+					shape = hidden.get_shape().as_list()
 
-				reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
-                               
-				hidden = tf.nn.relu(tf.matmul(reshape, layer3_weights) + layer3_biases)
+					reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
 
-                                if num_hidden_layers > 1:
-                                        # Layer 4
-                                        shape = hidden.get_shape().as_list()
 
-                                        reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
-                                       
-                                        hidden = tf.nn.relu(tf.matmul(reshape, layer4_weights) + layer4_biases)
+					hidden = tf.nn.relu(tf.matmul(reshape, layer1_weights) + layer1_biases)
+			
+				
 
-                                        if num_hidden_layers > 2:
-                                                # Layer 5
-                                                shape = hidden.get_shape().as_list()
-                                                reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
-                                                hidden = tf.nn.relu(tf.matmul(reshape, layer5_weights) + layer5_biases)
+				if num_hidden_layers > 1:
+					# Layer 2
+					shape = hidden.get_shape().as_list()
+					
+					#reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
+					
+					hidden = tf.nn.relu(tf.matmul(hidden, layer2_weights) + layer2_biases)
+					
+					if num_hidden_layers > 2:
+						# Layer 3
+						shape = hidden.get_shape().as_list()
+						#reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
+						hidden = tf.nn.relu(tf.matmul(hidden, layer3_weights) + layer3_biases)
 
-                                                if num_hidden_layers > 3:
-                                                        # Layer 6
-                                                        shape = hidden.get_shape().as_list()
-                                                        reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
-                                                        hidden = tf.nn.relu(tf.matmul(reshape, layer6_weights) + layer6_biases)
-
-                                                if num_hidden_layers > 4:
-                                                        # Layer 7
-                                                        shape = hidden.get_shape().as_list()
-                                                        reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
-                                                        hidden = tf.nn.relu(tf.matmul(reshape, layer7_weights) + layer7_biases)
+						if num_hidden_layers > 3:
+							# Layer 4
+							shape = hidden.get_shape().as_list()
+							#reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
+							hidden = tf.nn.relu(tf.matmul(hidden, layer4_weights) + layer4_biases)
+							if num_hidden_layers > 4:
+								# Layer 5
+								shape = hidden.get_shape().as_list()
+								#reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
+								hidden = tf.nn.relu(tf.matmul(hidden, layer5_weights) + layer5_biases)
 
 				
 				#hidden = tf.nn.dropout(hidden, dropout_keep_prob)
 				
 
-				output = tf.matmul(hidden, layer8_weights) + layer8_biases
+				output = tf.matmul(hidden, output_weights) + output_biases
 
 				return output
 
 			# Training computation
-			logits = network_model(tf_train_batch,num_hidden_layers)
+			logits = network_model(tf_train_batch,num_hidden_layers,num_conv_layers)
 
 			#loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels))
-                        loss = tf.sqrt(tf.reduce_mean(tf.square(tf.sub(tf_train_labels, logits))))
+			loss = tf.sqrt(tf.reduce_mean(tf.square(tf.sub(tf_train_labels, logits))))
 
 
 			# Add weight decay penalty
-			loss = loss + weight_decay_penalty([layer3_weights, layer4_weights], weight_penalty)
+			loss = loss + weight_decay_penalty(weights_to_penalize, weight_penalty)
 
 			# Optimizer
 			optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
 
 			# Predictions for the training, validation, and test data.
 			batch_prediction = logits
-			valid_prediction = network_model(tf_valid_dataset,num_hidden_layers)
-			test_prediction = network_model(tf_test_dataset,num_hidden_layers)
-			train_prediction = network_model(tf_train_dataset,num_hidden_layers)
+			valid_prediction = network_model(tf_valid_dataset,num_hidden_layers,num_conv_layers)
+			#test_prediction = network_model(tf_test_dataset,num_hidden_layers,num_conv_layers)
+			train_prediction = network_model(tf_train_dataset,num_hidden_layers,num_conv_layers)
 			
                         
 			def train_model(num_steps=num_training_steps):
@@ -226,12 +262,7 @@ class ArtistConvNet:
 				with tf.Session(graph=self.graph) as session:
 					tf.initialize_all_variables().run()
 					print 'Initializing variables...'
-					l_step= list()
-					l_batch_loss = list()
-					l_batch_train_acc = list()
-					l_val_acc = list()
-					l_train_acc = list()
-					l_test_acc = list()
+
 
 					for step in range(num_steps):
 						offset = (step * batch_size) % (self.train_Y.shape[0] - batch_size)
@@ -243,34 +274,20 @@ class ArtistConvNet:
 									 dropout_keep_prob: dropout_prob}
 						_, l, predictions = session.run(
 						  [optimizer, loss, batch_prediction], feed_dict=feed_dict)
-						if (step % 100 == 0):
+						if (step % 1 == 0):
 							train_preds = session.run(train_prediction, feed_dict={tf_train_dataset: self.train_X,
 																		   dropout_keep_prob : 1.0})
 							val_preds = session.run(valid_prediction, feed_dict={dropout_keep_prob : 1.0})
-                                                        #test_preds = session.run(test_prediction, feed_dict={tf_test_dataset: self.test_X, dropout_keep_prob : 1.0})
+							#test_preds = session.run(test_prediction, feed_dict={tf_test_dataset: self.test_X, dropout_keep_prob : 1.0})
 							print ''
 							print('Batch loss at step %d: %f' % (step, l))
 							print('Batch training Error: %.1f' % accuracy(predictions, batch_labels))
 							print('Validation Error: %.1f' % accuracy(val_preds, self.val_Y))
 							#print('Test Error: %.1f' % accuracy(test_preds, self.test_Y))
 							print('Full train Error: %.1f' % accuracy(train_preds, self.train_Y))
-							l_step.append(step)
-                                                        l_batch_loss.append(l)
-                                                        l_batch_train_acc.append(accuracy(predictions, batch_labels))
-                                                        l_val_acc.append(accuracy(val_preds, self.val_Y))
-                                                        l_train_acc.append(accuracy(train_preds, self.train_Y))
-                                                        #l_test_acc.append(accuracy(train_preds, self.test_Y))
-                                                        #print ', '.join(map(str, l_step))
-                                                        #print ', '.join(map(str, l_batch_loss))
-                                                        #print ', '.join(map(str, l_batch_train_acc))
-                                                        #print ', '.join(map(str, l_val_acc))
-                                                        #print ', '.join(map(str, l_train_acc))
-                                                        
-                                        results = {'train_mse': accuracy(train_preds, self.train_Y),'val_mse': accuracy(val_preds, self.val_Y)}
-                                        
-
-
-                                        return results
+							
+					results = {'train_mse': accuracy(train_preds, self.train_Y),'val_mse': accuracy(val_preds, self.val_Y)}
+					return results
                                 
 			# save train model function so it can be called later
 			self.train_model = train_model
@@ -307,7 +324,7 @@ def accuracy(predictions, labels):
   #print predictions
   #print labels
   #print predictions-labels
-  return np.sqrt(np.mean(np.square(predictions-labels)))
+  return np.sqrt(np.sum(np.square(predictions-labels)))
 
 if __name__ == '__main__':
 	invariance = False
