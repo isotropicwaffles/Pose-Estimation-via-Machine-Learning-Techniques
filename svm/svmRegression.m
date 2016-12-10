@@ -1,19 +1,19 @@
 function [ alphas, xout, b ] = svmRegression( x, y, k, C, epsilon )
 %SVMREGRESSION Performs an SVM regression of given x, y, and kernel k
-%   x - rows are dimensions, columns are data samples
-%   y - rows are dimensions, columns are data samples
+%   x - inputData
+%   y - pose data (1 dimension
 %   k - a single kernel object that implements eval(x, z) method
 
 xout = [];
 alphas = [];
 b = [];
-N = size(x, 2);
+N = length(x);
 
 %Calculate the K matrix
 K = zeros(N, N);
 for ii=1:N
    for jj=ii:N
-      K(ii, jj) = k.eval(x(:,ii), x(:,jj)); 
+      K(ii, jj) = k.eval(x(ii), x(jj)); 
    end
 end
 K = K + triu(K, 1)';
@@ -32,7 +32,7 @@ alphaTol = mean(alphas)*1e-4;
 alphas = reshape(alphas, N, 2);
 ix = (alphas(:,1) > alphaTol) | (alphas(:,2) > alphaTol);
 alphas = alphas(ix, :);
-xout = x(:, ix);
+xout = x(ix);
 K = K(ix, ix);
 y = y(ix);
 
