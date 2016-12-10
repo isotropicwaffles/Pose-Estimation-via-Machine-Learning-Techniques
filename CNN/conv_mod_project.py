@@ -234,14 +234,15 @@ class ArtistConvNet:
 				
 
 				output = tf.matmul(hidden, output_weights) + output_biases
+				out = tf.concat(1, [output[:,0:3], tf.nn.l2_normalize(output[:,3:6], 1), tf.nn.l2_normalize(output[:,6:9], 1), tf.nn.l2_normalize(output[:,9:12], 1)])
 
-				return output
+				return out
 
 			# Training computation
 			logits = network_model(tf_train_batch,num_hidden_layers,num_conv_layers)
 
 			#loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels))
-			loss = tf.sqrt(tf.reduce_mean(tf.square(tf.sub(tf_train_labels, logits))))
+			loss = tf.nn.l2_loss(tf.sub(tf_train_labels, logits))
 
 
 			# Add weight decay penalty
