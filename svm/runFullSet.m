@@ -6,7 +6,7 @@ function runFullSet( set, dim, fid)
 %Coordinate ascent
 C = 10.^linspace(0, 6, 100);
 bandwidth = 10.^linspace(-2, 2, 100);
-epsilon = 10.^linspace(-2, 5, 100);
+epsilon = 10.^linspace(-2, 3, 100);
 
 ixC = 1;
 ixBW = 1;
@@ -31,7 +31,7 @@ while true
     end
     
     coordValErrors = zeros(N, 1);
-    
+    lastGoodState = [ixC ixBW ixEps];
     for ii=1:N
        if coordNum == 1
            ixC = ii;
@@ -75,6 +75,9 @@ while true
     
 end
 
+ixC = lastGoodState(1);
+ixBW = lastGoodState(2);
+ixEps = lastGoodState(3);
 fprintf(fid, 'Settings for Dim %d (C, BW, Epsilon): %f %f %f\n', dim, C(ixC), bandwidth(ixBW), epsilon(ixEps));
 
 end
