@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import MLUtils as mlu
 import math
 import os
 import sys
@@ -19,7 +20,7 @@ IMAGE_SIZE = 256
 NUM_CHANNELS = 3 #RGB channels
 PIXEL_DEPTH = 255.0
 NUM_ARTISTS = 1
-NUM_DOF = 6
+NUM_DOF = 12
 PARTITION_TEST = True
 
 def load_artist(artist):
@@ -90,12 +91,25 @@ def make_basic_datasets():
 	test_data, test_labels = make_dataset_arrays()
 	num_train = num_val = num_test = 0
     
-	d = np.loadtxt(DATA_PATH + '../poses.txt',dtype=np.float32,delimiter=" ")
+	temp_d = np.loadtxt(DATA_PATH + '../poses.txt',dtype=np.float32,delimiter=" ")
+	d = np.empty([temp_d.shape[0],12],dtype=np.float32)
         #     print d[1]
-        for i in xrange(0, len(d)-1):
-          d[i][3] = d[i][3]*2*math.pi/180
-          d[i][4] = d[i][4]*2*math.pi/180
-          d[i][5] = d[i][5]*2*math.pi/180
+	for i in xrange(0, len(temp_d)-1):
+		temp_dcm =  mlu.pose2DCM(temp_d[i][3], temp_d[i][4],temp_d[i][5])
+		d[i][0] = temp_d[i][0]
+		d[i][1] = temp_d[i][1]
+		d[i][2] = temp_d[i][2]
+		d[i][3] = temp_dcm[0][0]
+		d[i][4] = temp_dcm[0][1]
+		d[i][5] = temp_dcm[0][2]
+		d[i][6] = temp_dcm[1][0]
+		d[i][7] = temp_dcm[1][1]
+		d[i][8] = temp_dcm[1][2]
+		d[i][9] = temp_dcm[2][0]
+		d[i][10] = temp_dcm[2][1]
+		d[i][11] = temp_dcm[2][2]
+		print d[i]
+
 	
         #    print d[1] # 248
 	for label,artist in enumerate(artists):
