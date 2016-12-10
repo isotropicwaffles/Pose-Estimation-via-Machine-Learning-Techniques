@@ -39,16 +39,20 @@ def load_artist(artist):
 	Runs = temp_data[0,0].Runs
 
 	features = np.empty([Runs.shape[0],points.shape[1], NUM_FOCAL_PLANE_DOF], dtype=np.float32)
+	print points.shape
+	print Runs.shape
 	outputs = np.empty([Runs.shape[0], NUM_DOF], dtype=np.float32)
-
-	for i in xrange(0, Runs.shape[0]-1):
-		for j in xrange(0,points.shape[1]-1):
-			if Runs[i,0].Occluded[j][0] == 1:
+	count1 = 0
+	for i in xrange(0, Runs.shape[0]):
+		for j in xrange(0,points.shape[1]):
+			if 0:#Runs[i,0].Occluded[j][0] == 1:
 				features[i,j,0] = 0
 				features[i,j,1] = 0
 			else:
+				count1 = count1 + 1
 				features[i,j,0] = Runs[i,0].Points[0,j]
 				features[i,j,1] = Runs[i,0].Points[1,j]
+				#print features[i,j,:]
 		temp_dcm =  mlu.pose2DCM(Runs[i,0].yaw[0,0],Runs[i,0].pitch[0,0],Runs[i,0].roll[0,0])
 		outputs[i][0] = Runs[i,0].x[0,0]
 		outputs[i][1] = Runs[i,0].y[0,0]
@@ -62,13 +66,14 @@ def load_artist(artist):
 		outputs[i][9] = temp_dcm[2][0]
 		outputs[i][10] = temp_dcm[2][1]
 		outputs[i][11] = temp_dcm[2][2]
-		print outputs[i]	  
+		#print outputs[i]	  
 	
 	print 'Shape dataset size:', features.shape
 	print 'Mean:', np.mean(features) 
 	print 'Standard deviation:', np.std(features)
 	print ''
-	print outputs 
+	#print outputs 
+	print count1
 	return features, outputs
 
 
@@ -107,7 +112,7 @@ def make_basic_datasets():
 		# create a one-hot encoding of this artist's label
 
 		artist_data,artist_label = load_artist(artist)
-		print artist_data.shape 
+		#print artist_data.shape 
         #randomize the data		
 		artist_data, artist_label = randomize(artist_data, artist_label)	
 		num_paintings = len(artist_data)
