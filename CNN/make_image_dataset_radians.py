@@ -103,7 +103,7 @@ def make_basic_datasets():
 		artist_data,num_indices = load_artist(artist)
 		artist_label =  d[num_indices]
 		#randomize the data		
-		train_data, train_labels = randomize(train_data, train_labels)		
+		artist_data, artist_label = randomize(artist_data, artist_label)		
                 #print artist_label
 		#scale the data
 		artist_data = scale_pixel_values(artist_data)
