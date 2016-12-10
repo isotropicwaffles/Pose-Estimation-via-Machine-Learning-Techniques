@@ -35,7 +35,7 @@ def run_all_cnn_analysis():
   layer3_num_hidden_array = [64] 
   layer4_num_hidden_array = [64]
   layer5_num_hidden_array = [64] 
-  num_training_steps_array = [5000] 
+  num_training_steps_array = [1500] 
   
   # Add max pooling arrays
   pooling_array = [True]
