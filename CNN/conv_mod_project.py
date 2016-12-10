@@ -11,7 +11,7 @@ DATA_PATH = '../Input_Data/images/data' + PIXEL_WIDTH +'/' + SHAPE +'/'
 DATA_FILE = DATA_PATH + 'art_data.pickle'
 IMAGE_SIZE = 256
 NUM_CHANNELS = 3
-NUM_DOF = 6
+NUM_DOF = 12
 INCLUDE_TEST_SET = False
 
 class ArtistConvNet:
