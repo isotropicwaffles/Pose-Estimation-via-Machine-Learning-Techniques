@@ -14,3 +14,7 @@ The second 500 are the cone poses.
 The third 500 are the sphere poses.
 
 (Through the magic of random seeds, the poses are identical for both resolutions.)
+
+
+There are also 128x128 versions and 64x64 versions. Download from:
+https://s3.amazonaws.com/byu146-6.867/smallData.zip
