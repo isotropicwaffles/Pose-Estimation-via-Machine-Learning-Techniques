@@ -280,14 +280,20 @@ class ArtistConvNet:
 																		   dropout_keep_prob : 1.0})
 							val_preds = session.run(valid_prediction, feed_dict={dropout_keep_prob : 1.0})
 							#test_preds = session.run(test_prediction, feed_dict={tf_test_dataset: self.test_X, dropout_keep_prob : 1.0})
+
+							val_error = accuracy(val_preds, self.val_Y)
+							train_error = accuracy(train_preds, self.train_Y)
 							print ''
 							print('Batch loss at step %d: %f' % (step, l))
 							print('Batch training Error: %.1f' % accuracy(predictions, batch_labels))
-							print('Validation Error: %.1f' % accuracy(val_preds, self.val_Y))
+							print('Validation Error: %.1f' % val_error)
 							#print('Test Error: %.1f' % accuracy(test_preds, self.test_Y))
-							print('Full train Error: %.1f' % accuracy(train_preds, self.train_Y))
+							print('Full train Error: %.1f' % train_error)
 							
-					results = {'train_mse': accuracy(train_preds, self.train_Y),'val_mse': accuracy(val_preds, self.val_Y)}
+							if math.isnan(l) or math.isinf(l):
+								results = {'train_mse': -1,'val_mse': -1}
+								return results
+					results = {'train_mse': train_error,'val_mse': val_error}
 					return results
                                 
 			# save train model function so it can be called later

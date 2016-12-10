@@ -17,38 +17,38 @@ def run_all_cnn_analysis():
 
   
   # Hyperparameters arrays
-  num_hidden_layers_array =[1]
-  num_conv_layers_array =[3]
+  num_hidden_layers_array =[1,2,3,4,5]
+  num_conv_layers_array =[0,1,2,3]
   batch_size_array = [10]
-  learning_rate_array = [.00001]
-  conv_layer1_filter_size_array = [5] 
-  conv_layer1_depth_array = [16]
-  conv_layer1_stride_array = [1] 
-  conv_layer2_filter_size_array = [5] 
-  conv_layer2_depth_array = [16]
-  conv_layer2_stride_array = [2] 
-  conv_layer3_filter_size_array = [5] 
-  conv_layer3_depth_array = [16]
-  conv_layer3_stride_array = [2] 
-  layer1_num_hidden_array = [64] 
-  layer2_num_hidden_array = [64]
-  layer3_num_hidden_array = [64] 
-  layer4_num_hidden_array = [64]
-  layer5_num_hidden_array = [64] 
+  learning_rate_array = [1e-2,1e-4,1e-8]
+  conv_layer1_filter_size_array = [3, 5, 8] 
+  conv_layer1_depth_array = [8, 16]
+  conv_layer1_stride_array = [1, 2, 4] 
+  conv_layer2_filter_size_array = [3, 5, 8] 
+  conv_layer2_depth_array = [8, 16]
+  conv_layer2_stride_array = [1, 2, 4] 
+  conv_layer3_filter_size_array = [3, 5, 8] 
+  conv_layer3_depth_array = [8, 16]
+  conv_layer3_stride_array = [1, 2, 4] 
+  layer1_num_hidden_array = [16, 32, 64, 128] 
+  layer2_num_hidden_array = [16, 32, 64, 128]
+  layer3_num_hidden_array = [16, 32, 64, 128] 
+  layer4_num_hidden_array = [16, 32, 64, 128]
+  layer5_num_hidden_array = [16, 32, 64, 128] 
   num_training_steps_array = [1500] 
   
   # Add max pooling arrays
-  pooling_array = [True]
-  conv_layer1_pool_filter_size_array = [2]
-  conv_layer1_pool_stride_array = [2]
-  conv_layer2_pool_filter_size_array = [2]
-  conv_layer2_pool_stride_array = [2]
-  conv_layer3_pool_filter_size_array = [2]
-  conv_layer3_pool_stride_array = [2]
+  pooling_array = [True, False]
+  conv_layer1_pool_filter_size_array = [3, 5, 8]
+  conv_layer1_pool_stride_array = [1, 2, 4]
+  conv_layer2_pool_filter_size_array = [3, 5, 8]
+  conv_layer2_pool_stride_array = [1, 2, 4]
+  conv_layer3_pool_filter_size_array = [3, 5, 8]
+  conv_layer3_pool_stride_array = [1, 2, 4]
  
   # Enable dropout and weight decay normalization
   dropout_prob_array = [1] # set to < 1.0 to apply dropout, 1.0 to remove
-  weight_penalty_array = [0.0] # set to > 0.0 to apply weight penalty, 0.0 to remove
+  weight_penalty_array = [0, 1e-6, 1e-1, 1] # set to > 0.0 to apply weight penalty, 0.0 to remove
 
 
 
@@ -157,15 +157,19 @@ def run_all_cnn_analysis():
     #print "Saving temp Parameters"
     pickle_file = 'temp_parm.pickle'
     count = count + 1
+    print count
+    
     random.shuffle(hyper_indx)
 
     for ix in hyper_indx:
+      print 'Running parameter: ' + hyper_parameters[ix]
+      last_val_error = 100000000000
+      last_train_error = 100000000000
       temp_value = eval(hyper_parameters[ix]+'_array')
-
+      random.shuffle(temp_value)
       #check if there is more than 1 value to iterate over
       if len(temp_value) > 1 or did_it_run_once_flag == 0:
         did_it_run_once_flag = 1
-    
         for x in temp_value:
 		
           save = {
@@ -203,21 +207,41 @@ def run_all_cnn_analysis():
 
           # print pooling
           save_pickle_file(pickle_file, save)
-          #print "Save Successful Parameters"
-          t1 = time.time()
-          conv_net = AC(False,pickle_file)
-          tmp = conv_net.train_model()
-          if tmp['val_mse'] < last_val_error:
-            best_value = x
-            last_val_error = tmp['val_mse']
-            last_train_error = tmp['train_mse']
 
+          try:
+            t1 = time.time()
+            conv_net = AC(False,pickle_file)
+            tmp = conv_net.train_model()
+            print tmp
+            if tmp['val_mse'] < last_val_error and tmp['val_mse'] > 0:
+              best_value = x
+              last_val_error = tmp['val_mse']
+              last_train_error = tmp['train_mse']
+              print "New Best Value, {}: {} , val error = {}".format(hyper_parameters[ix],best_value,last_val_error)
       
-          t2 = time.time()
-          print "Finished training. Total time taken:", t2-t1
+            t2 = time.time()
+            print "Finished training. Total time taken:", t2-t1
+          except:
+            print "Failed"
+
+        exec("temp_hyp_val = " + hyper_parameters[ix]) 
+        print ""
+        print "{} prior best value was: {}".format(hyper_parameters[ix],temp_hyp_val)
+        print "Best value observed is: {}".format(best_value)
         exec(hyper_parameters[ix] + " = best_value")
+        exec("temp_hyp_val = " + hyper_parameters[ix]) 
+        save[hyper_parameters[ix]] = best_value
+        print "{} best value is now: {}".format(hyper_parameters[ix],temp_hyp_val)
+        print ""
+        print "Best Parameters so far, Count: {}".format(count)
+        print ''
+        for x in save:
+          print "{}: {}".format((x),save[x])
 
 
+        print ""
+        save[hyper_parameters[ix]] = x
+        save_pickle_file('temp_best.pickle', save)
         #save best value back to variable so it's used when looking at other hyperparameters
     tmp['val_mse'] = last_val_error
     tmp['train_mse'] = last_train_error
