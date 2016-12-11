@@ -1,0 +1,21 @@
+Cone runs...
+Settings for Dim 1 (C, BW, Epsilon): 464158.883361 100.000000 0.100000
+Settings for Dim 2 (C, BW, Epsilon): 4641.588834 14.677993 0.001000
+Settings for Dim 3 (C, BW, Epsilon): 46415.888336 0.100000 0.001778
+Settings for Dim 4 (C, BW, Epsilon): 215.443469 0.010000 0.056234
+Settings for Dim 5 (C, BW, Epsilon): 21544.346900 0.146780 5.623413
+Settings for Dim 6 (C, BW, Epsilon): 0.215443 100.000000 0.001000
+Cube runs...
+Settings for Dim 1 (C, BW, Epsilon): 21544.346900 21.544347 0.031623
+Settings for Dim 2 (C, BW, Epsilon): 0.010000 0.010000 0.001000
+Settings for Dim 3 (C, BW, Epsilon): 46415.888336 0.010000 0.001000
+Settings for Dim 4 (C, BW, Epsilon): 21544.346900 0.068129 0.056234
+Settings for Dim 5 (C, BW, Epsilon): 464158.883361 68.129207 1.000000
+Settings for Dim 6 (C, BW, Epsilon): 4641.588834 0.010000 0.316228
+Sphere runs...
+Settings for Dim 1 (C, BW, Epsilon): 0.010000 0.010000 0.001000
+Settings for Dim 2 (C, BW, Epsilon): 10000.000000 68.129207 0.003162
+Settings for Dim 3 (C, BW, Epsilon): 4641.588834 0.068129 0.001000
+Settings for Dim 4 (C, BW, Epsilon): 0.100000 0.010000 0.001000
+Settings for Dim 5 (C, BW, Epsilon): 464158.883361 0.146780 0.003162
+Settings for Dim 6 (C, BW, Epsilon): 0.464159 0.010000 0.010000

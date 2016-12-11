@@ -1,22 +1,22 @@
-function  runAllPointSetsValidation( cone, cube, sphere )
+function  runAllImagesValidation( cone, cube, sphere, coney, cubey, spherey )
 %RUNALLPOINTSETSVALIDATION Summary of this function goes here
 %   Detailed explanation goes here
 
-fid = fopen('log.txt', 'a');
+fid = fopen('logImages.txt', 'a');
 
 fprintf(fid, 'Cone runs...\n');
 for ii=1:6
-   runFullSet(cone.Runs, ii, fid); 
+   runFullSetImages(cone, coney, ii, fid); 
 end
 
 fprintf(fid, 'Cube runs...\n');
 for ii=1:6
-   runFullSet(cube.Runs, ii, fid); 
+   runFullSetImages(cube, cubey, ii, fid); 
 end
 
 fprintf(fid, 'Sphere runs...\n');
 for ii=1:6
-   runFullSet(sphere.Runs, ii, fid); 
+   runFullSetImages(sphere, spherey, ii, fid); 
 end
 
 fclose(fid);
