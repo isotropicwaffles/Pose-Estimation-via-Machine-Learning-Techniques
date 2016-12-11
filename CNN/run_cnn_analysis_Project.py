@@ -6,10 +6,10 @@ import random
 import scipy.io as sio
 from conv_mod_project import ArtistConvNet as AC
 from six.moves import cPickle as pickle
-
+import os
 
 pixel_width = '64'
-shape = 'cone'
+shape = os.environ['CNN_SHAPE'] #'cone'
 
 def run_all_cnn_analysis():
   #Testing this shit
@@ -20,7 +20,7 @@ def run_all_cnn_analysis():
   num_hidden_layers_array = [1,2,3,4,5] #[1,2,3,4,5]
   num_conv_layers_array =[0,1,2,3] # [0,1,2,3]
   batch_size_array = [100] #[100]
-  learning_rate_array = [1e-2 1e-4 1e-8]
+  learning_rate_array = [1e-2, 1e-4, 1e-8]
   conv_layer1_filter_size_array = [3, 5, 8] 
   conv_layer1_depth_array = [8, 16]
   conv_layer1_stride_array = [1, 2, 4] 

@@ -10,9 +10,10 @@ from PIL import Image
 from PIL import ImageEnhance
 import PIL.ImageOps
 from six.moves import cPickle as pickle
+import os
 
 PIXEL_WIDTH = '64'
-SHAPE = 'cone'
+SHAPE = os.environ['CNN_SHAPE'] #'sphere'
 DATA_PATH = '../Input_Data/images/data' + PIXEL_WIDTH +'/' + SHAPE +'/'
 VALIDATION_PERCENT = .2
 TEST_PERCENT = .2

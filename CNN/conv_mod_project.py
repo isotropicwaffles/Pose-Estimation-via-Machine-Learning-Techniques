@@ -4,9 +4,10 @@ from six.moves import cPickle as pickle
 import sys
 import math
 import time
+import os
 
 PIXEL_WIDTH = '64'
-SHAPE = 'sphere'
+SHAPE = os.environ['CNN_SHAPE'] #'sphere'
 DATA_PATH = '../Input_Data/images/data' + PIXEL_WIDTH +'/' + SHAPE +'/'
 DATA_FILE = DATA_PATH + 'art_data.pickle'
 IMAGE_SIZE = 64
