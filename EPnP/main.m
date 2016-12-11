@@ -26,13 +26,13 @@ addpath data;
 addpath error;
 addpath EPnP;
 
-type = 1; 
+type = 2; 
 
 fprintf('\n---------EPnP--------------\n');
 %1.-Generate simulated input data------------------------------------------
 load_points=0;
-if ~load_points
-    std_noise=10; %noise in the measurements (in pixels)
+%if ~load_points
+    std_noise=0; %noise in the measurements (in pixels)
     
     
     data = load('PointDataSet.mat');
@@ -48,14 +48,15 @@ if ~load_points
     end
     
     
-    [A,point,Rt]=generate_noisy_input_data(data,std_noise);
-    save('data\input_data_noise.mat','A','point','Rt');
-else
-    load('data\input_data_noise.mat','A','point','Rt');
-    n=size(point,2);
-    draw_noisy_input_data(point);
-end
-
+    [A,runs]=generate_noisy_input_data(data,std_noise);
+   %save('data\input_data_noise.mat','A','point');%
+%else
+    %load('data\input_data_noise.mat','A','point');
+    %n=size(point,2);
+    %draw_noisy_input_data(point);
+%end
+point = runs{1};
+ n =numel(point);
 %2.-Inputs format--------------------------------
 x3d=zeros(n,4);
 x2d=zeros(n,3); 
