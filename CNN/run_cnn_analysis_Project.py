@@ -9,7 +9,7 @@ from six.moves import cPickle as pickle
 
 
 pixel_width = '64'
-shape = 'cone'
+shape = 'cube'
 
 def run_all_cnn_analysis():
   #Testing this shit
@@ -20,7 +20,7 @@ def run_all_cnn_analysis():
   num_hidden_layers_array = [1,2,3,4,5] #[1,2,3,4,5]
   num_conv_layers_array =[0,1,2,3] # [0,1,2,3]
   batch_size_array = [100] #[100]
-  learning_rate_array = [1e-2 1e-4 1e-8]
+  learning_rate_array = [1e-2, 1e-4, 1e-8]
   conv_layer1_filter_size_array = [3, 5, 8] 
   conv_layer1_depth_array = [8, 16]
   conv_layer1_stride_array = [1, 2, 4] 
@@ -162,10 +162,51 @@ def run_all_cnn_analysis():
     random.shuffle(hyper_indx)
 
     for ix in hyper_indx:
-      print 'Running parameter: ' + hyper_parameters[ix]
+      curr_hyper_param = hyper_parameters[ix]
+      temp_value = eval(curr_hyper_param+'_array')
+      print temp_value
+      #exec "temp_hyp_val = " + curr_hyper_param
+      if num_hidden_layers < 5 and 'layer5_num_hidden' == curr_hyper_param:
+          continue
+      if num_hidden_layers < 4 and 'layer4_num_hidden' == curr_hyper_param:
+          continue
+      if num_hidden_layers < 3 and 'layer3_num_hidden' == curr_hyper_param:
+          continue
+      if num_hidden_layers < 2 and 'layer2_num_hidden' == curr_hyper_param:
+          continue
+      if num_conv_layers < 3:
+        list_to_check = ['conv_layer3_filter_size',
+                         'conv_layer3_depth', 
+                         'conv_layer3_stride',
+                         'conv_layer3_pool_filter_size',
+                         'conv_layer3_pool_stride']
+
+        if any(curr_hyper_param in s for s in list_to_check):
+          continue
+      if num_conv_layers < 2:
+        list_to_check = ['conv_layer2_filter_size',
+                         'conv_layer2_depth', 
+                         'conv_layer2_stride',
+                         'conv_layer2_pool_filter_size',
+                         'conv_layer2_pool_stride']
+
+        if any(curr_hyper_param in s for s in list_to_check):
+          continue
+      if num_conv_layers < 1:
+        list_to_check = ['conv_layer1_filter_size',
+                         'conv_layer1_depth', 
+                         'conv_layer1_stride',
+                         'conv_layer1_pool_filter_size',
+                         'conv_layer1_pool_stride',
+                         'pooling']
+
+        if any(curr_hyper_param in s for s in list_to_check):   
+          continue
+
+      print 'Running parameter: ' + curr_hyper_param
       last_val_error = 100000000000
       last_train_error = 100000000000
-      temp_value = eval(hyper_parameters[ix]+'_array')
+
       random.shuffle(temp_value)
       #check if there is more than 1 value to iterate over
       if len(temp_value) > 1 or did_it_run_once_flag == 0:
@@ -203,7 +244,7 @@ def run_all_cnn_analysis():
             'weight_penalty': weight_penalty
             }
           #update the value we want to
-          save[hyper_parameters[ix]] = x
+          save[curr_hyper_param] = x
 
           # print pooling
           save_pickle_file(pickle_file, save)
@@ -217,21 +258,21 @@ def run_all_cnn_analysis():
               best_value = x
               last_val_error = tmp['val_mse']
               last_train_error = tmp['train_mse']
-              print "New Best Value, {}: {} , val error = {}".format(hyper_parameters[ix],best_value,last_val_error)
+              print "New Best Value, {}: {} , val error = {}".format(curr_hyper_param,best_value,last_val_error)
       
             t2 = time.time()
             print "Finished training. Total time taken:", t2-t1
           except:
             print "Failed"
 
-        exec("temp_hyp_val = " + hyper_parameters[ix]) 
+        exec "temp_hyp_val = " + curr_hyper_param in globals(), locals() 
         print ""
-        print "{} prior best value was: {}".format(hyper_parameters[ix],temp_hyp_val)
+        print "{} prior best value was: {}".format(curr_hyper_param,temp_hyp_val)
         print "Best value observed is: {}".format(best_value)
-        exec(hyper_parameters[ix] + " = best_value")
-        exec("temp_hyp_val = " + hyper_parameters[ix]) 
-        save[hyper_parameters[ix]] = best_value
-        print "{} best value is now: {}".format(hyper_parameters[ix],temp_hyp_val)
+        exec curr_hyper_param + " = best_value" in globals(), locals() 
+        exec "temp_hyp_val = " + curr_hyper_param in globals(), locals() 
+        save[curr_hyper_param] = best_value
+        print "{} best value is now: {}".format(curr_hyper_param,temp_hyp_val)
         print ""
         print "Best Parameters so far, Count: {}".format(count)
         print ''
@@ -240,7 +281,7 @@ def run_all_cnn_analysis():
 
 
         print ""
-        save[hyper_parameters[ix]] = x
+        save[curr_hyper_param] = x
         save_pickle_file('temp_best.pickle', save)
         #save best value back to variable so it's used when looking at other hyperparameters
     tmp['val_mse'] = last_val_error
