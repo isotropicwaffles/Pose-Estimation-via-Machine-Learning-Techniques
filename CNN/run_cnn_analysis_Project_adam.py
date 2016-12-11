@@ -4,7 +4,7 @@ import math
 import time
 import random
 import scipy.io as sio
-from conv_mod_project import ArtistConvNet as AC
+from conv_mod_project_adam import ArtistConvNet as AC
 from six.moves import cPickle as pickle
 
 
