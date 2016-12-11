@@ -9,7 +9,7 @@ from six.moves import cPickle as pickle
 
 
 pixel_width = '64'
-shape = 'sphere'
+shape = 'cone'
 
 def run_all_cnn_analysis():
   #Testing this shit
@@ -20,7 +20,7 @@ def run_all_cnn_analysis():
   num_hidden_layers_array = [1,2,3,4,5] #[1,2,3,4,5]
   num_conv_layers_array =[0,1,2,3] # [0,1,2,3]
   batch_size_array = [100] #[100]
-  learning_rate_array = [1e-3]
+  learning_rate_array = [1e-2 1e-4 1e-8]
   conv_layer1_filter_size_array = [3, 5, 8] 
   conv_layer1_depth_array = [8, 16]
   conv_layer1_stride_array = [1, 2, 4] 
@@ -35,7 +35,7 @@ def run_all_cnn_analysis():
   layer3_num_hidden_array = [16, 32, 64, 128] 
   layer4_num_hidden_array = [16, 32, 64, 128]
   layer5_num_hidden_array = [16, 32, 64, 128] 
-  num_training_steps_array = [50000] 
+  num_training_steps_array = [10000] 
   
   # Add max pooling arrays
   pooling_array = [False] #[True,False]

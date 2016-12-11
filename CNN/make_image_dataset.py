@@ -11,13 +11,13 @@ from PIL import ImageEnhance
 import PIL.ImageOps
 from six.moves import cPickle as pickle
 
-PIXEL_WIDTH = '256'
+PIXEL_WIDTH = '64'
 SHAPE = 'cone'
 DATA_PATH = '../Input_Data/images/data' + PIXEL_WIDTH +'/' + SHAPE +'/'
 VALIDATION_PERCENT = .2
 TEST_PERCENT = .2
 
-IMAGE_SIZE = 256
+IMAGE_SIZE = 64
 NUM_CHANNELS = 3 #RGB channels
 PIXEL_DEPTH = 255.0
 NUM_ARTISTS = 1
@@ -63,7 +63,7 @@ def read_image_from_file(file_path):
         #print pixel_values
 	return np.reshape(pixel_values, [IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS])
 
-def make_dataset_arrays(num_rows=2000):
+def make_dataset_arrays(num_rows=3000):
 	data = np.ndarray((num_rows, IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS), dtype=np.float32)
 	labels = np.ndarray((num_rows, NUM_DOF), dtype=np.float32)
 	return data, labels
@@ -93,13 +93,24 @@ def make_basic_datasets():
 	num_train = num_val = num_test = 0
     
 	temp_d = np.loadtxt(DATA_PATH + '../poses.txt',dtype=np.float32,delimiter=" ")
-	d = np.empty([temp_d.shape[0],12],dtype=np.float32)
+	d = np.empty([500,12],dtype=np.float32)
+
+	if SHAPE == 'cone':
+		pos_indx = range(500,1000)
+	elif SHAPE == 'sphere':
+		pos_indx = range(1000,1500)
+	elif SHAPE == 'cube':
+		pos_indx = range(0,500)
+	else:
+		raise
+	
         #     print d[1]
-	for i in xrange(0, len(temp_d)-1):
-		temp_dcm =  mlu.pose2DCM(temp_d[i][3], temp_d[i][4],temp_d[i][5])
-		d[i][0] = temp_d[i][0]
-		d[i][1] = temp_d[i][1]
-		d[i][2] = temp_d[i][2]
+	for i in xrange(0, 500):
+		
+		temp_dcm =  mlu.pose2DCM(temp_d[pos_indx[i]][3], temp_d[pos_indx[i]][4],temp_d[pos_indx[i]][5])
+		d[i][0] = temp_d[pos_indx[i]][0]
+		d[i][1] = temp_d[pos_indx[i]][1]
+		d[i][2] = temp_d[pos_indx[i]][2]
 		d[i][3] = temp_dcm[0][0]
 		d[i][4] = temp_dcm[0][1]
 		d[i][5] = temp_dcm[0][2]
@@ -108,7 +119,7 @@ def make_basic_datasets():
 		d[i][8] = temp_dcm[1][2]
 		d[i][9] = temp_dcm[2][0]
 		d[i][10] = temp_dcm[2][1]
-		d[i][11] = temp_dcm[2][2]
+		d[i][11] = temp_dcm[2][2] 
 		print d[i]
 
 	
