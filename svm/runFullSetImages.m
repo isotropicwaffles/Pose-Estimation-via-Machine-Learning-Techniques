@@ -1,21 +1,20 @@
-function runFullSet( set, dim, fid)
+function runFullSetImages( xdata, ydata, dim, fid)
 %RUNFULLSET Summary of this function goes here
 %   Detailed explanation goes here
 
 
 %Coordinate ascent
-C = 10.^linspace(0, 6, 100);
-bandwidth = 10.^linspace(-2, 2, 100);
-epsilon = 10.^linspace(-3, 3, 100);
+C = 10.^linspace(-2, 6, 25);
+bandwidth = 10.^linspace(-2, 2, 25);
+epsilon = 10.^linspace(-3, 3, 25);
 
 ixC = 1;
 ixBW = 1;
 ixEps = 1;
 
-[train, ydata] = convertSetToStruct(set);
-val = train(251:375);
-test = train(376:500);
-train = train(1:250);
+val = xdata(251:375);
+test = xdata(376:500);
+train = xdata(1:250);
 
 valError = inf;
 coordNum = 1;
@@ -41,9 +40,9 @@ while true
            ixEps = ii;
        end
        
-       [alphas, xout, b] = trainSVM(train, ydata(:, 1:250), dim, bandwidth(ixBW), C(ixC), epsilon(ixEps));
-       yval = svmRegressionEval(alphas, xout, b, val, kernels.ModifiedGRBF(bandwidth(ixBW)));
-       coordValErrors(ii) =  rms(yval - ydata(dim, 251:375));
+       [alphas, xout, b] = trainImageSVM(train, ydata(1:250, :), dim, bandwidth(ixBW), C(ixC), epsilon(ixEps));
+       yval = svmRegressionEval(alphas, xout, b, val, kernels.GRBFImages(bandwidth(ixBW)));
+       coordValErrors(ii) =  rms(yval - ydata(251:375, dim)');
        fprintf('%d of %d\n', ii, N);
     end
     
