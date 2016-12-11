@@ -234,7 +234,7 @@ class ArtistConvNet:
 				
 
 				output = tf.add(tf.matmul(hidden, output_weights), output_biases)
-				out = output #tf.concat(1, [output[:,0:3], tf.nn.l2_normalize(output[:,3:6], 1), tf.nn.l2_normalize(output[:,6:9], 1), tf.nn.l2_normalize(output[:,9:12], 1)])
+				out = output#tf.concat(1, [output[:,0:3], tf.nn.l2_normalize(output[:,3:6], 1), tf.nn.l2_normalize(output[:,6:9], 1), tf.nn.l2_normalize(output[:,9:12], 1)])
 
 				return out
 
@@ -250,7 +250,8 @@ class ArtistConvNet:
 			loss = loss + weight_decay_penalty(weights_to_penalize, weight_penalty)
 
 			# Optimizer
-			optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
+			optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss)
+			#tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
 
 			# Predictions for the training, validation, and test data.
 			batch_prediction = logits
@@ -312,9 +313,10 @@ class ArtistConvNet:
 			save = pickle.load(f)
 			self.train_X = save['train_data']
 			self.train_Y = save['train_labels']
+			#self.train_Y = self.train_Y[:,0:3]
 			self.val_X = save['val_data']
 			self.val_Y = save['val_labels']
-
+			#self.val_Y = self.val_Y[:,0:3]
 			if INCLUDE_TEST_SET:
 				self.test_X = save['test_data']
 				self.test_Y = save['test_labels']
