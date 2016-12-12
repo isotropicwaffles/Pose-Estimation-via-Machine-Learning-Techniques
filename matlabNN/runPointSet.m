@@ -1,4 +1,4 @@
-function [ trainAcc, valAcc, testAcc ] = runShapeSet( set, setY, layers, eta )
+function [ trainAcc, valAcc, testAcc ] = runPointSet( set, layers, eta )
 %RUNSHAPESET Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -6,20 +6,26 @@ trainAcc = [];
 valAcc = [];
 testAcc = [];
 
-TheNetwork = FeedForwardNN(12288, 12, layers);
+D = 2*size(set.Points, 2);
+
+TheNetwork = FeedForwardNN(D, 12, layers);
 
 %Convert to big things of vectors
-newSet = zeros(12288, 500);
+newSet = zeros(D, 500);
+newSetY = zeros(12, 500);
 for ii=1:500
-    newSet(:, ii) = reshape(set{ii}, 12288, 1);
+    newSet(:, ii) = reshape(set.Runs(ii).Points, D, 1);
+    newSetY(1:3,ii) = [set.Runs(ii).x set.Runs(ii).y set.Runs(ii).z]';
+    tmp = pose2DCM(set.Runs(ii).yaw, set.Runs(ii).pitch, set.Runs(ii).roll);
+    newSetY(4:end, ii) = [tmp(:, 1); tmp(:, 2); tmp(:, 3)];
 end
 
 trainX = newSet(:, 1:250);
-trainY = setY(1:250, :);
+trainY = newSetY(:, 1:250);
 valX = newSet(:, 251:375);
-valY = setY(251:375, :);
+valY = newSetY(:, 251:375);
 testX = newSet(:, 376:end);
-testY = setY(376:end, :);
+testY = newSetY(:, 376:end);
 
 initialValAcc = testNetwork(TheNetwork, valX, valY);
 fprintf('Initial Validation Performance: %f\n', initialValAcc);
@@ -34,7 +40,7 @@ while keepRunning
     for ii=1:N
         ix = randi(N);
         TheNetwork.ForwardPropagation(trainX(:, ix));
-        TheNetwork.BackwardPropagation(trainY(ix,:)');
+        TheNetwork.BackwardPropagation(trainY(:, ix));
         
         
         %What is the current eta?
@@ -59,12 +65,17 @@ while keepRunning
     valAcc = [valAcc; curValAcc];
     fprintf('Epoch %d Validation Accuracy: %f\n', length(valAcc), curValAcc);
     
+    %Stop at 500 epochs
+    if length(valAcc) > 499
+        keepRunning = false;
+    end
+    
     if isnan(curValAcc)
-        %we've failed and need to return a bad measurement
-        trainAcc = inf;
-        valAcc = inf;
-        testAcc = inf;
-        return;
+       %we've failed and need to return a bad measurement
+       trainAcc = inf;
+       valAcc = inf;
+       testAcc = inf;
+       return;
     end
     
 end
@@ -82,7 +93,7 @@ for ii=1:N
     aNetwork.ForwardPropagation(valX(:, ii));
     thisY = aNetwork.layers(end).a;
     
-    l2Err = l2Err + norm(thisY - valY(ii, :)').^2;
+    l2Err = l2Err + norm(thisY - valY(:, ii)).^2;
     
 end
 
