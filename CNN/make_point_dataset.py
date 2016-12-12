@@ -14,13 +14,13 @@ from six.moves import cPickle as pickle
 
 PIXEL_WIDTH = '256'
 FOV = 60
-SHAPE = 'cone'
+SHAPE = 'sphere'
 FILENAME = 'PointDataSet.mat'
 DATA_PATH = '../Input_Data/'
 VALIDATION_PERCENT = .2
 TEST_PERCENT = .2
 #CONE: 79, SPHERE:62: CUBE:14
-NUM_POINTS = 79
+NUM_POINTS = 62
 NUM_FOCAL_PLANE_DOF= 2#RGB channels
 NUM_ARTISTS = 1
 NUM_DOF = 12
