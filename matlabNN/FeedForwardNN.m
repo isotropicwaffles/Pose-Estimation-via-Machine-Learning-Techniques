@@ -28,7 +28,7 @@ classdef FeedForwardNN < handle
             for ii=2:length(layersI)
                 m = layersI(ii-1);
                 obj.layers(ii).W = normrnd(0, 1/sqrt(m), m, layersI(ii));
-                obj.layers(ii).b = zeros(layersI(1), 1);
+                obj.layers(ii).b = zeros(layersI(ii), 1);
             end
             
             %Handle the Soft-Max output layer

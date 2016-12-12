@@ -18,9 +18,9 @@ for ii=1:500
 end
 
 for ii=1:500
-        cone{ii} = (double(cone{ii}) -128)/128;
-        cube{ii} = (double(cube{ii}) -128)/128;
-        sphere{ii} = (double(sphere{ii}) -128)/128;
+        cone{ii} = (double(cone{ii}) -128)/255;
+        cube{ii} = (double(cube{ii}) -128)/255;
+        sphere{ii} = (double(sphere{ii}) -128)/255;
 end
 
 Y = importdata(sprintf('%s/poseData.txt', dirName));
