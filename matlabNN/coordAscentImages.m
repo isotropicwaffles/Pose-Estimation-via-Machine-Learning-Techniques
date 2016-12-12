@@ -31,6 +31,10 @@ while keepRunning
       myTestValErrors = zeros(numTests, 1);
       for jj=1:numTests
          %For every test value
+         
+         %Update the indexes
+         indexes(ii) = jj;
+         
          testEta = eta(indexes(end));
          testLayers = layers(indexes(1:5));
          %Drop those layers which are zero

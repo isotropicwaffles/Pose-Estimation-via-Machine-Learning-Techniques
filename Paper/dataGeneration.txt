@@ -1,0 +1,38 @@
+\section{Data Generation}
+
+To test our machine learning and baseline EPnP algorithm we generated two data sets. Each dataset contains versions of a cube, a cone, and a sphere in 500 randomly generated poses. (So each dataset contains 1500 total different samples.) Each pose contains a 3D translation and then yaw, pitch, and roll rotations.
+
+\subsection{Geometric Data Points}
+
+The first data set consists of the projected 2D locations of geometric points from the various shapes. We defined a set of 3D points on the surfaces of the cube, the cone, and the sphere. These base shapes were centered around the origin of our coordinate system. Then, a randomly generated translation and rotation (a pose) was applied to the points. Finally, the points were projected onto a 2D image using a sixty degree field of view.
+
+The geometry of the world was set in a right-handed coordinate system. The camera is at the origin and points along the negative Z-axis, so that the x-axis points to the right, and the the y-axis points up (from the point of view of the camera).
+
+The base geometry of each shape was chosen to to have a characteristic dimension of 1.0. The sphere had a diameter of 1.0. The cone had a diameter of 1.0 at its base, and a height of 1.0. The cube had sides of length 1.0. The rotations were allowed to vary uniformly through the space. Yaw varied between 0 and 360 degrees. Pitch varied between positive 90 and negative 90 degrees. Roll varied between 0 and 180 degrees. Those spans are enough to specify any 3D rotation. The x and y of the coordinates of the translation were uniformly distributed between -1.5 and +1.5. The z coordinated varied between -4.33 and -1.7320. This z range placed our shapes at a distance from the camera so that they took up roughly one fifth to a third of the total FOV. We note it was possible for a shape to be half off the image.
+
+The math for applying our random pose, and then projecting our points onto a 2D image follow the vertex processing of OpenGL 1.0. We start with our points from the base shape. These are converted to homogeneous coordinates, which are four vectors of the form:
+
+**EQUATION FOR 3D POINT IN HOMOGENOUS COORDINATES**
+
+The benefit of this coordinate system is that both translations and roations can be written as a matrix multiplication. We create one matrix for the translation, as well as for each of the yaw, pitch, and roll rotations. Finally, we calculate a projection matrix which defines a frustum that represents the field of view of the camera.
+
+**Figure of frustrum**
+
+We then calculate the final locations of the points:
+
+**Equation of rotation**
+
+We normalize these coordinates, by dividing each element of the 4th component of each vector. These normalized coordinates have the property that every point inside that frustrum has x, y, and z coordinates in [-1, 1]. Anything else is out of the FOV.
+
+We also calculated the occlusion of each of these points. The final points have z-coordinates, and by defining a set of triangles on the surface of each shape, it is possible to see if a point is blocked by some surface segment of the shape.
+
+**FIGURES OF SHAPES**
+
+\subsection{Image Data Set}
+Our second data set consisted of full bitmap images of posed cubes, cones, and spheres on a black background. We used the GLUT library to speed our creation of these scenes with OpenGL. Like before, we created 500 random poses of each of the three shapes. The math implemented is the same as in the geometric point case, but of course, OpenGL will render a full scene after transforming the shape vertices.
+
+We applied a texture to our shapes. We chose a high-res version of the Earth from NASA public release. We figured this texture was interesting and also assymetric. Lack of symmetry is beneficial, as for example, it's possible to, for example, determine which face of the cube you are observing; each face will have a unique part of the Earth on it.
+
+We rendered 64x64 24-bit RGB images and saved them in BMP format. The images are saved unnormalized, but we applied normalization in our algorithms.
+
+**FIGURES OF IMAGE SHAPES**
