@@ -6,7 +6,7 @@ layers = [0 2 8 32 128 256];
 eta = [1e-2 1e-3 1e-4 1e-5 1e-6 1e-8];
 
 %Layer 1, Layer 2, Layer 3, Layer 4, Layer 5, Eta
-indexes = [2 1 1 1 1 1 1];
+indexes = [5 5 1 1 1 1 1];
 
 keepRunning = true;
 epochCount = 0;
