@@ -149,16 +149,15 @@ We rendered 64x64 24-bit RGB images and saved them in BMP format. The images are
 
  As a baseline to the performance of the 3D estimation, we used a method referred to as Efficient PnP (EPnP). The implementation of the solver used was included as part of a paper by Lepetit et al\cite{EPnP}. This method is a hybrid method between a direct and iterative solver. In first part of the algorithm, a weighted sum of four virtual points are calculated from n observed reference points. These four virtual points are then used in the direct solver which gives an initial guess of the solution. This guess is then fed into a Gauss-Newton iterative solver which reduces the overall errors in the guess. Overall this implementation's computational cost is linear in terms of the number of reference points.
  
- Results of this method for our geometric reference point data set are shown in Table \ref{EPnP_Table}. Overall the performance of this calculation is robust to some level of noise as long as the points are non-coplanar. A notable issue with this method is seen in cases where the points are co-planar. For example, if the reference points on the base of the cone are the only reference points visible then the direct solver has an issue getting a reasonable initial guess to feed the Gauss-Newton solver.
+ Results of this method for our geometric reference point data set are shown in Table \ref{EPnP_Table}. Overall the performance of this calculation is robust to some level of noise as long as the points are non-coplanar. A notable issue with this method is seen in cases where the points are co-planar. This is clearly shown in (Fig \ref{Fig:cone_performance}) for the case where the cone's base occludes the all non co-planar reference points. The error from this image corresponds to the maximum error observed for the cases where occlusion is included. 
  
- **(Show figure of examples?)**
+ Other than these outliers cases this method is great for cases where there the reference points are well defined and non-coplanar. 
  
- This method is great for cases where there the reference points are well defined and non-coplanar. It should be noted that this method also has a strict assumption that the reference points are on a rigid body. This is due to the fact that the 3D geometry of the reference points must be known beforehand to feed to the algorithms. 
- 
+ It should be noted that this method also has a strict assumption that the reference points are on a rigid body. This is due to the fact that the 3D geometry of the reference points must be known beforehand to feed to the algorithms. . 
  
 
 \begin{table}[h]
-	\caption{EPnP Performance: Measure Errors = 0, 0.05, 0.1 degs }
+	\caption{EPnP Performance}
 	\label{EPnP_Table}
 	\centering
 	\begin{tabular}{|c|c|c|c|c|}
@@ -166,32 +165,51 @@ We rendered 64x64 24-bit RGB images and saved them in BMP format. The images are
 		\hline
 		\multicolumn{5}{|c|}{Cone Error} \\
 		\hline
-		Points: & All & Non-Occluded & 4 & 3\\
+		Points: & All & With Occlusion & 4 & 3\\
 		\hline
-		RMS & \multicolumn{1}{|l|}{9E-13}  &  &  &\\
-		MAX & 6E-12| & &  &\\
-		MIN & 2E-14| & &  &\\
+		RMS & 9.4E-13  & 1.2 & 3.8E-1 & 1.6\\
+		MAX & 6.5E-12 & 26.8 & 6.2 & 8.1\\
+		MIN & 1.5E-14 & 1.0E-14 & 4.3E-15 & 4.9E-4\\
 		\hline
 		\multicolumn{5}{|c|}{Cube Error} \\
 		\hline
 		Points: & All & Non-Occluded & 4 & 3\\
 		\hline
-		RMS & 2E-13| &  &  &\\
-		MAX & 3E-12 & &  &\\
-		MIN & 4E-15 & &  &\\
+		RMS & 2.9E-13 & 1.9E-13 & 4.8E-1 & 1.4\\
+		MAX & 3.2E-12 & 1.7E-12 & 7.7 & 7.9\\
+		MIN & 4.9E-15 & 3.2E-15 & 2.6E-15 & 3.5E-3\\
 		\hline
 		\multicolumn{5}{|c|}{Sphere Error} \\
 		\hline
 		Points: & All & Non-Occluded & 4 & 3\\
 		\hline
-		RMS &  &  & &\\
-		MAX &  & &  &\\
-		MIN & & &  &\\
+		RMS & 9.7E-13 & 5.7E-13 & 5.2E-1 & 1.5\\
+		MAX & 9.1E-12 & 3.8E-12 & 7.3 & 8.1\\
+		MIN & 6.0E-15 & 6.3E-15 & 2.0E-15 & 2.5E-3\\
 		\hline
 		
 		
 	\end{tabular}
 \end{table}
+
+\begin{figure}
+	\hspace{-10 ex}
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=1.9in]{poor_cone_camera_view_w_error}
+		\caption{View from Camera Position}
+		\label{fig:vive}
+	\end{subfigure}%
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=1.9in]{poor_cone_topview_view_w_error}
+		\caption{View From Top}
+		\label{fig:oculus}
+	\end{subfigure}
+	\caption{Figure shows the reference points of the cone which correspond to the max error in the case with occlusion. Blue circles represent non-occluded reference points. Red circles represent reference points occluded from the camera. Yellow star represents the estimated pose. Note that all point estimations are about the same position due to the poor estimation capability for co-planar reference points.}
+	\label{Fig:cone_performance}
+\end{figure}
+
 
 \section{SVM Regression}
 
@@ -392,7 +410,14 @@ Our optimized parameters from the image data set are shown in Table \ref{SVM_Ima
 We explored using a convolutional neural network on our image data only. This is because CNNs have the ability to relate features locality which makes sense for image data, but does not really help with low dimensionality we see in the point reference data.  
 
 \subsection{Implementation}
-We implemented our CNN using a GPU version of TensorFlow. Similar to homework 3, we had an input layer, multiple convolution and pooling layers, a hidden layers, and an output layer.(See Figure ....) 
+We implemented our CNN using a GPU version of TensorFlow. Similar to homework 3, we had an input layer, multiple convolution and pooling layers, a hidden layers, and an output layer.(Fig \ref{Fig:CNN_ARCH})
+
+\begin{figure}
+	\centering\hspace{-10 ex}
+	\includegraphics[width=4in]{CNN_ARCH}
+	\caption{Graphical Representation of our CNN Setup}
+	\label{Fig:CNN_ARCH}
+\end{figure}
 
 For the input layer we took each channel(RGB) of in the image and normalized the pixel values such that they could only lay within -0.5 to 0.5. The size of our input layer corresponded to the number of pixels times the number of channels. For the output layer, we used 12 nodes. There were three nodes that represented the 3D position of the object and nine nodes that represented the objects orientation as a direction cosine matrix. We did not apply any activation function the output layer since we were attempting to perform regression and not classification. 
 
@@ -407,6 +432,70 @@ Since we were not totally sure the best hyperparameters to use for the data set,
 In each iteration of coordinate descent we ran through the 
 
 \subsection{Performance on Raw Image Data}
+
+
+
+
+\begin{table}[h]
+	\caption{CNN Performance for Cone images after ten iterations of Coordinate Ascent}
+	\label{CNN_CONE_TABLE}
+	\centering
+	\begin{tabular}{|c|c|c|c||c|c|c|}
+		\cline{2-7}
+		\multicolumn{1}{c|}{} &	\multicolumn{6}{c|}{CONE}\\\cline{2-7}
+		\multicolumn{1}{c|}{}&\multicolumn{3}{|c||}{Training Error}  &\multicolumn{3}{c|}{Validation Error} \\
+		\cline{2-7}
+		\multicolumn{1}{c|}{} & HL = 1 & 2 & 3 &1 & 2 & 3 \\
+		\hline
+		CL = 1	& & & 	& & & \\
+		2	& & & & & & \\
+		3	& & & & &  & \\
+		\hline
+		
+		
+	\end{tabular}
+\end{table}
+
+\begin{table}[h]
+	\caption{CNN Performance for Cube images after ten iterations of Coordinate Ascent}
+	\label{CNN_CUBE_TABLE}
+	\centering
+	\begin{tabular}{|c|c|c|c||c|c|c|}
+		\cline{2-7}
+		\multicolumn{1}{c|}{} &	\multicolumn{6}{c|}{Cube}\\\cline{2-7}
+		\multicolumn{1}{c|}{}&\multicolumn{3}{|c||}{Training Error}  &\multicolumn{3}{c|}{Validation Error} \\
+		\cline{2-7}
+		\multicolumn{1}{c|}{} & HL = 1 & 2 & 3 &1 & 2 & 3 \\
+		\hline
+		CL = 1	& & & 	& & & \\
+		2	& & & & & & \\
+		3	& & & & &  & \\
+		\hline
+		
+		
+	\end{tabular}
+\end{table}
+
+
+\begin{table}[h]
+	\caption{CNN Performance for Sphere images after ten iterations of Coordinate Ascent}
+	\label{CNN_SPHERE_TABLE}
+	\centering
+	\begin{tabular}{|c|c|c|c||c|c|c|}
+		\cline{2-7}
+		\multicolumn{1}{c|}{} &	\multicolumn{6}{c|}{SPHERE}\\\cline{2-7}
+		\multicolumn{1}{c|}{}&\multicolumn{3}{|c||}{Training Error}  &\multicolumn{3}{c|}{Validation Error} \\
+		\cline{2-7}
+		\multicolumn{1}{c|}{} & HL = 1 & 2 & 3 &1 & 2 & 3 \\
+		\hline
+		CL = 1	& & & 	& & & \\
+		2	& & & & & & \\
+		3	& & & & &  & \\
+		\hline
+		
+		
+	\end{tabular}
+\end{table}
 
 
 \section{Summary}
