@@ -253,3 +253,13 @@ sphere Image Dim 6 (Train, Val, Test): 55.780784 53.296742 59.528568
 ans =
 
    125     2
+   
+   Organized by coneP coneI cubeP cubeI sphereP sphereI
+   data =
+
+   233   125   250   125   249   126
+   216   125   191   160   250   169
+   201   181   242   125   234   125
+   221   114   244   125   220   250
+   229   171   215   250   190   166
+   211   125   218   125   180   125
