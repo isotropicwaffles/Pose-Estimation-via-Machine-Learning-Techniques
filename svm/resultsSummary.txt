@@ -1,0 +1,255 @@
+Cone Dim 1 (Train, Val, Test): 65.554484 64.610879 143.902763
+Cone Dim 2 (Train, Val, Test): 9.679785 19.332789 67.931383
+Cone Dim 3 (Train, Val, Test): 22.610235 28.204543 63.173690
+Cone Dim 4 (Train, Val, Test): 0.028562 0.097226 1.203973
+Cone Dim 5 (Train, Val, Test): 0.017899 0.096197 1.324511
+Cone Dim 6 (Train, Val, Test): 0.074570 0.240741 0.673912
+Cube Dim 1 (Train, Val, Test): 54.671545 69.127465 128.892843
+Cube Dim 2 (Train, Val, Test): 11.516737 15.104284 70.884934
+Cube Dim 3 (Train, Val, Test): 22.665185 27.860259 64.804574
+Cube Dim 4 (Train, Val, Test): 0.006369 0.051618 1.246132
+Cube Dim 5 (Train, Val, Test): 0.010817 0.038766 1.148181
+Cube Dim 6 (Train, Val, Test): 0.050916 0.115780 0.719099
+Sphere Dim 1 (Train, Val, Test): 61.834910 76.257994 124.865239
+Sphere Dim 2 (Train, Val, Test): 15.551304 16.981590 67.641860
+Sphere Dim 3 (Train, Val, Test): 15.323147 36.774045 62.371281
+Sphere Dim 4 (Train, Val, Test): 0.031519 0.078171 1.208821
+Sphere Dim 5 (Train, Val, Test): 0.019581 0.069591 1.313238
+Sphere Dim 6 (Train, Val, Test): 0.085546 0.170599 0.715436
+Cone Image Dim 1 (Train, Val, Test): 0.929743 0.810887 0.856581
+Cone Image Dim 2 (Train, Val, Test): 0.984332 0.818735 0.886178
+Cone Image Dim 3 (Train, Val, Test): 0.490626 0.496716 0.519886
+Cone Image Dim 4 (Train, Val, Test): 108.586440 98.178370 102.914391
+Cone Image Dim 5 (Train, Val, Test): 60.378916 51.779552 54.047725
+Cone Image Dim 6 (Train, Val, Test): 52.591000 50.459018 47.921814
+Cube Image Dim 1 (Train, Val, Test): 0.897220 0.884600 0.885430
+Cube Image Dim 2 (Train, Val, Test): 0.883796 0.779065 0.925021
+Cube Image Dim 3 (Train, Val, Test): 0.512376 0.520755 0.508106
+Cube Image Dim 4 (Train, Val, Test): 99.024495 101.423926 98.324162
+Cube Image Dim 5 (Train, Val, Test): 57.957975 48.915493 50.332767
+Cube Image Dim 6 (Train, Val, Test): 53.386639 50.835804 53.885835
+sphere Image Dim 1 (Train, Val, Test): 0.879085 0.951192 0.906496
+sphere Image Dim 2 (Train, Val, Test): 0.958136 0.792612 0.912514
+sphere Image Dim 3 (Train, Val, Test): 0.474422 0.491515 0.509054
+sphere Image Dim 4 (Train, Val, Test): 104.293443 101.257011 100.387393
+sphere Image Dim 5 (Train, Val, Test): 58.114635 52.445369 57.654654
+sphere Image Dim 6 (Train, Val, Test): 55.780784 53.296742 59.528568
+
+
+Now follows another run with the size of alpha
+>> summarizeResults
+Cone Dim 1 (Train, Val, Test): 65.554484 64.610879 143.902763
+
+ans =
+
+   233     2
+
+Cone Dim 2 (Train, Val, Test): 9.679785 19.332789 67.931383
+
+ans =
+
+   216     2
+
+Cone Dim 3 (Train, Val, Test): 22.610235 28.204543 63.173690
+
+ans =
+
+   201     2
+
+Cone Dim 4 (Train, Val, Test): 0.028562 0.097226 1.203973
+
+ans =
+
+   221     2
+
+Cone Dim 5 (Train, Val, Test): 0.017899 0.096197 1.324511
+
+ans =
+
+   229     2
+
+Cone Dim 6 (Train, Val, Test): 0.074570 0.240741 0.673912
+
+ans =
+
+   211     2
+
+Cube Dim 1 (Train, Val, Test): 54.671545 69.127465 128.892843
+
+ans =
+
+   250     2
+
+Cube Dim 2 (Train, Val, Test): 11.516737 15.104284 70.884934
+
+ans =
+
+   191     2
+
+Cube Dim 3 (Train, Val, Test): 22.665185 27.860259 64.804574
+
+ans =
+
+   242     2
+
+Cube Dim 4 (Train, Val, Test): 0.006369 0.051618 1.246132
+
+ans =
+
+   244     2
+
+Cube Dim 5 (Train, Val, Test): 0.010817 0.038766 1.148181
+
+ans =
+
+   215     2
+
+Cube Dim 6 (Train, Val, Test): 0.050916 0.115780 0.719099
+
+ans =
+
+   218     2
+
+Sphere Dim 1 (Train, Val, Test): 61.834910 76.257994 124.865239
+
+ans =
+
+   249     2
+
+Sphere Dim 2 (Train, Val, Test): 15.551304 16.981590 67.641860
+
+ans =
+
+   250     2
+
+Sphere Dim 3 (Train, Val, Test): 15.323147 36.774045 62.371281
+
+ans =
+
+   234     2
+
+Sphere Dim 4 (Train, Val, Test): 0.031519 0.078171 1.208821
+
+ans =
+
+   220     2
+
+Sphere Dim 5 (Train, Val, Test): 0.019581 0.069591 1.313238
+
+ans =
+
+   190     2
+
+Sphere Dim 6 (Train, Val, Test): 0.085546 0.170599 0.715436
+
+ans =
+
+   180     2
+
+Cone Image Dim 1 (Train, Val, Test): 0.929743 0.810887 0.856581
+
+ans =
+
+   114     2
+
+Cone Image Dim 2 (Train, Val, Test): 0.984332 0.818735 0.886178
+
+ans =
+
+   171     2
+
+Cone Image Dim 3 (Train, Val, Test): 0.490626 0.496716 0.519886
+
+ans =
+
+   125     2
+
+Cone Image Dim 4 (Train, Val, Test): 108.586440 98.178370 102.914391
+
+ans =
+
+   125     2
+
+Cone Image Dim 5 (Train, Val, Test): 60.378916 51.779552 54.047725
+
+ans =
+
+   181     2
+
+Cone Image Dim 6 (Train, Val, Test): 52.591000 50.459018 47.921814
+
+ans =
+
+   125     2
+
+Cube Image Dim 1 (Train, Val, Test): 0.897220 0.884600 0.885430
+
+ans =
+
+   125     2
+
+Cube Image Dim 2 (Train, Val, Test): 0.883796 0.779065 0.925021
+
+ans =
+
+   250     2
+
+Cube Image Dim 3 (Train, Val, Test): 0.512376 0.520755 0.508106
+
+ans =
+
+   125     2
+
+Cube Image Dim 4 (Train, Val, Test): 99.024495 101.423926 98.324162
+
+ans =
+
+   125     2
+
+Cube Image Dim 5 (Train, Val, Test): 57.957975 48.915493 50.332767
+
+ans =
+
+   160     2
+
+Cube Image Dim 6 (Train, Val, Test): 53.386639 50.835804 53.885835
+
+ans =
+
+   125     2
+
+sphere Image Dim 1 (Train, Val, Test): 0.879085 0.951192 0.906496
+
+ans =
+
+   250     2
+
+sphere Image Dim 2 (Train, Val, Test): 0.958136 0.792612 0.912514
+
+ans =
+
+   166     2
+
+sphere Image Dim 3 (Train, Val, Test): 0.474422 0.491515 0.509054
+
+ans =
+
+   125     2
+
+sphere Image Dim 4 (Train, Val, Test): 104.293443 101.257011 100.387393
+
+ans =
+
+   126     2
+
+sphere Image Dim 5 (Train, Val, Test): 58.114635 52.445369 57.654654
+
+ans =
+
+   169     2
+
+sphere Image Dim 6 (Train, Val, Test): 55.780784 53.296742 59.528568
+
+ans =
+
+   125     2

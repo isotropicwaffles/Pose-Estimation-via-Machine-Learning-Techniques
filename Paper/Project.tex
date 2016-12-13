@@ -196,14 +196,189 @@ We rendered 64x64 24-bit RGB images and saved them in BMP format. The images are
 \section{SVM Regression}
 
 \subsection{Implementation}
+We implemented our own version of the regression support vector machine SVM) in Matlab using it's quadratic programming routines. The regression SVM is formulated as the optimization of the $\epsilon$ - insensitive loss function:
+
+** EQUATION FOR E INSENSITIVE LOSS **
+
+The Lagrangian dual formulation of this problem is
+
+**DUAL FORM OF SVM EQUATION **
+
+We used the quadprog routine of Matlab to optimize this problem. Specifically, we set:
+
+**MATLAB VARIABLES HERE EQUATION**
+
+We made the slightly surprising discovery that Matlab quadratic programming doesn't seem to to support optimizing over multiple dimensions at once. Thus, for our investigations into the regression SVM, we actually created 6 SVMS (X translation, Y translation, Z translation, Yaw, Pitch, Roll) for each of the 3 different test shapes.
+
+We used a Gaussian Radial Basis kernel for both our geometric reference point and the image data set. The bitmaps were simply changed into a 64x64x3 length vector and passed into the kernel as usual. For the $N$ points for each shape in the reference point dataset, we formed a vector of $2N$ dimensions. (The X, and Y coordinates of each 2D projected points.)  For example, we had 14 reference points in our cube poses, and thus formed each pose into a length 28 vector.
+
+This formulation on the geometric reference point set ignores the effects of occlusion. Hypothetically, to best match the problem, we should not provide information from points that are occluded. We attempted to derive a kernel that could encode the knowledge of which points were occluded, define a kernel based on the GRBK as:
+
+**MODIFIED KERNEL FORMULATION**
+
+Unfortunately, Matlab quickly informed us using this kernel made the problem non-convex, and we suspect this operation is not actually positive semi-definite.
+
+For both our datasets we have 3 hyper-parameters to optimize for: $C$, $\epsilon$, and $\sigma$ (the bandwidth of the kernel). We optimized our hyper-parameters by using an empirically based coordinate descent algorithm. We varied our hyper-parameters over:
+
+\begin{align*}
+C &\in [10^{6} ... 10^{100}]\\
+\sigma &\in [10^{-2} ... 10^{2}]\\
+\epsilon &\in [10^{-3} ... 10^{3}]
+\end{align*}
+
+\noindent 100 test points were in each parameter sweep, spread evenly logarithmically.
+
+We divided our 500 poses from each shape into a training set of 250 samples, a validation set of 125 samples, and a testing set of 125 samples. Our figure of merit was the root mean square value of the residuals from the actual values of the translation X, Y, Z, and rotations yaw, pitch, roll. (Recall, we trained a different SVM for each of the 6 dimensions of the pose.) In turn, we optimized each of the hyper-parameters keeping the others constant. We trained an SVM for each of the 100 possible values for the hyper-parameter in question, and then set it to the value that produced the lowest validation error. We then continued on with the next hyper-parameter, cycling through until validation error stayed constant through a cycle of all the hyper-parameters.
 
 \subsection{Performance on Reference Point Data}
+
+\begin{table}[h]
+\caption{SVM Performance on the Reference Point Dataset}
+\label{SVM_Point}
+\centering
+	\begin{tabular}{|c|c|c|c|c|}
+	\hline
+	Shape & Dimension & Train E. & Val E. & Test E\\
+   \hline
+    Cone &Yaw & 65.554484 & 64.610879 & 143.902763 \\
+    Cone &Pitch & 9.679785 & 19.332789 & 67.931383 \\
+    Cone &Roll & 22.610235 & 28.204543 & 63.173690 \\
+    Cone &X & 0.028562 & 0.097226 & 1.203973 \\
+    Cone &Y & 0.017899 & 0.096197 & 1.324511 \\
+    Cone &Z & 0.074570 & 0.240741 & 0.673912 \\
+    \hline
+    Cube & Yaw & 54.671545 & 69.127465 & 128.892843 \\
+    Cube & Pitch & 11.516737 & 15.104284 & 70.884934 \\
+    Cube & Roll & 22.665185 & 27.860259 & 64.804574 \\
+    Cube & X & 0.006369 & 0.051618 & 1.246132 \\
+    Cube & Y & 0.010817 & 0.038766 & 1.148181 \\
+    Cube & Z & 0.050916 & 0.115780 & 0.719099 \\
+    \hline
+    Sphere & Yaw & 61.834910 & 76.257994 & 124.865239 \\
+    Sphere & Pitch & 15.551304 & 16.981590 & 67.641860 \\
+    Sphere & Roll & 15.323147 & 36.774045 & 62.371281 \\
+    Sphere & X & 0.031519 & 0.078171 & 1.208821 \\
+    Sphere & Y & 0.019581 & 0.069591 & 1.313238 \\
+    Sphere & Z & 0.085546 & 0.170599 & 0.715436\\
+    \hline
+	\end{tabular}
+\end{table}
+
+Table \ref{SVM_Point} shows our RMS error for pose estimation using the geometric reference points (angles in degrees). The first thing we note, of course, is that these values are terrible! We appear to be doing better than random chance, but not by much. We see the largest error in Yaw, which we think might be due to the ambiguous discontinuity near 360 / 0 degrees. The other dimensions do not have a wrap around point as they were only varied 180 degrees.
+
+We note a very interesting trend in the relative differences between train, test, and validation error. Generally, our training error was less than our validation error, suggesting overfitting, but we also note many times the validation error was significantly less than the test error! The biggest examples of this effect can be seen in the translation dimensions. Our training and validation errors are small, on the order of $10^{-2}$ or $10^{-1}$, but the test error is over 1. We theorize that perhaps our 500 samples are too sparse in the dimensionality of the problem, such that learning results near the validation set, does not mean areas near the test set have been learned. We did check to see if there were some correlations in the test set to coverage in the randomly generated poses, but they do indeed appear random.
+
+\begin{table}[h]
+\caption{SVM Optimized Parameters on the Reference Point Dataset}
+\label{SVM_Point_Parms}
+\centering
+
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Shape & Dim & C & $\sigma$ & $\epsilon$\\
+\hline
+Cone & Yaw & 8697.490026 & 83.021757 & 4.328761\\
+Cone & Pitch & 1629.750835 & 18.738174 & 2.848036\\
+Cone & Roll & 10000.000000 & 100.000000 & 4.328761\\
+Cone & X & 65.793322 & 29.836472 & 0.012328\\
+Cone & Y & 151.991108 & 35.938137 & 0.006136\\
+Cone & Z & 132.194115 & 27.185882 & 0.043288\\
+\hline
+Cube & Yaw & 1873.817423 & 6.734151 & 0.001000\\
+Cube & Pitch & 5722.367659 & 17.073526 & 3.764936\\
+Cube & Roll & 2848.035868 & 14.174742 & 0.533670\\
+Cube & X & 21.544347 & 4.641589 & 0.001748\\
+Cube & Y & 26560.877829 & 62.802914 & 0.006136\\
+Cube & Z & 65.793322 & 8.111308 & 0.018738\\
+\hline
+Sphere &  Yaw & 20092.330026 & 100.000000 & 0.464159\\
+Sphere &  Pitch & 3274.549163 & 52.140083 & 0.001000\\
+Sphere &  Roll & 705.480231 & 8.111308 & 1.417474\\
+Sphere &  X & 9.326033 & 15.556761 & 0.009326\\
+Sphere &  Y & 70548.023107 & 100.000000 & 0.012328\\
+Sphere &  Z & 1873.817423 & 100.000000 & 0.049770\\
+\hline
+\end{tabular}
+\end{table}
+
+Table \ref{SVM_Point_Parms} shows what our optimized hyper-parameters were. We note a few general trends. First, the angle dimensions have much larger epsilons, which inutuitively makes sense as they span over larger order of magnitudes than the translation components. C was also, in general, higher for angle dimensions than translational, with the notable exceptions of the Y dimensions for both the sphere and the cube.
 
 \subsection{Performance on Raw Image Data}
 
-\subsection{Implementation}
+\begin{table}[h]
+\caption{SVM Performance on the Image Dataset}
+\label{SVM_Image}
+\centering
 
-\subsection{Performance on Reference Point Data}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Shape & Dimension & Train E. & Val E. & Test E\\
+\hline
+Cone & X & 0.929743 & 0.810887 & 0.856581\\
+Cone & Y & 0.984332 & 0.818735 & 0.886178\\
+Cone & Z & 0.490626 & 0.496716 & 0.519886\\
+Cone & Yaw & 108.586440 & 98.178370 & 102.914391\\
+Cone & Pitch & 60.378916 & 51.779552 & 54.047725\\
+Cone & Roll & 52.591000 & 50.459018 & 47.921814\\
+\hline
+Cube & X & 0.897220 & 0.884600 & 0.885430\\
+Cube & Y & 0.883796 & 0.779065 & 0.925021\\
+Cube & Z & 0.512376 & 0.520755 & 0.508106\\
+Cube & Yaw & 99.024495 & 101.423926 & 98.324162\\
+Cube & Pitch & 57.957975 & 48.915493 & 50.332767\\
+Cube & Roll & 53.386639 & 50.835804 & 53.885835\\
+\hline
+Sphere & X & 0.879085 & 0.951192 & 0.906496\\
+Sphere & Y & 0.958136 & 0.792612 & 0.912514\\
+Sphere & Z & 0.474422 & 0.491515 & 0.509054\\
+Sphere & Yaw & 104.293443 & 101.257011 & 100.387393\\
+Sphere & Pitch & 58.114635 & 52.445369 & 57.654654\\
+Sphere & Roll & 55.780784 & 53.296742 & 59.528568\\
+\hline
+\end{tabular}
+
+\end{table}
+
+Table \ref{SVM_Image} shows the performance of our SVM regression using the full bitmap data. We note that the performance is marginally better than our reference point data set, but is still far inferior to the performance of EPnP. It is noteable, that the large differences between test error and validation error have dissappeared. Training error is also much more in line with validation and test error. In fact, often times the test data set out-performed the training data set.
+
+\begin{table}[h]
+\caption{SVM Optimized Parameters on Image Dataset}
+\label{SVM_Image_Parms}
+\centering
+
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Shape & Dim & C & $\sigma$ & $\epsilon$\\
+\hline
+Cone & X & 464158.883361 & 100.000000 & 0.100000\\
+Cone & Y & 4641.588834 & 14.677993 & 0.001000\\
+Cone & Z & 46415.888336 & 0.100000 & 0.001778\\
+Cone & Yaw & 215.443469 & 0.010000 & 0.056234\\
+Cone & Pitch & 21544.346900 & 0.146780 & 5.623413\\
+Cone & Roll & 0.215443 & 100.000000 & 0.001000\\
+\hline
+Cube & X & 21544.346900 & 21.544347 & 0.031623\\
+Cube & Y & 0.010000 & 0.010000 & 0.001000\\
+Cube & Z & 46415.888336 & 0.010000 & 0.001000\\
+Cube & Yaw & 21544.346900 & 0.068129 & 0.056234\\
+Cube & Pitch & 464158.883361 & 68.129207 & 1.000000\\
+Cube & Roll & 4641.588834 & 0.010000 & 0.316228\\
+\hline
+Sphere & X & 0.010000 & 0.010000 & 0.001000\\
+Sphere & Y & 10000.000000 & 68.129207 & 0.003162\\
+Sphere & Z & 4641.588834 & 0.068129 & 0.001000\\
+Sphere & Yaw & 0.100000 & 0.010000 & 0.001000\\
+Sphere & Pitch & 464158.883361 & 0.146780 & 0.003162\\
+Sphere & Roll & 0.464159 & 0.010000 & 0.010000\\
+\hline
+
+\end{tabular}
+
+\end{table}
+
+Our optimized parameters from the image data set are shown in Table \ref{SVM_Image_Parms}.  We note again the higher values of $\epsilon$ showed up in the angle dimensions.
+
+**STUFF ABOUT SPARSENESS AND NUMBER OF SUPPORT VECTORS**
 
 \section{Feed-Forward Network (FFNN)}
 
