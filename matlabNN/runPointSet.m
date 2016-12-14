@@ -1,4 +1,4 @@
-function [ trainAcc, valAcc, testAcc ] = runPointSet( set, layers, eta )
+function [ trainAcc, valAcc, testAcc, fullAcc ] = runPointSet( set, layers, eta )
 %RUNSHAPESET Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -66,7 +66,7 @@ while keepRunning
     fprintf('Epoch %d Validation Accuracy: %f\n', length(valAcc), curValAcc);
     
     %Stop at 500 epochs
-    if length(valAcc) > 499
+    if length(valAcc) > 4999
         keepRunning = false;
     end
     
@@ -82,6 +82,31 @@ end
 
 trainAcc = testNetwork(TheNetwork, trainX, trainY);
 testAcc = testNetwork(TheNetwork, testX, testY);
+
+%Let's change the stuff and do some angles
+fullAcc = zeros(4, 125);
+for ii=1:125
+    TheNetwork.ForwardPropagation(testX(:, ii));
+    thisY = TheNetwork.layers(end).a;
+    %Translation
+    fullAcc(1, ii) = norm(thisY(1:3) - testY(1:3, ii));
+    
+    %X
+    xReal = testY(4:6, ii);
+    xPred = thisY(4:6);
+    fullAcc(2, ii) = acosd(dot(xReal, xPred)./ norm(xReal) ./ norm(xPred));
+    
+    %Y
+    yReal = testY(7:9, ii);
+    yPred = thisY(7:9);
+    fullAcc(3, ii) = acosd(dot(yReal, yPred) ./ norm(yReal) ./ norm(yPred));
+    
+    %Z
+    zReal = testY(10:12, ii);
+    zPred = thisY(10:12);
+    fullAcc(4, ii) = acosd(dot(zReal, zPred) ./ norm(zReal) ./ norm(zPred));
+    
+end
 
 end
 

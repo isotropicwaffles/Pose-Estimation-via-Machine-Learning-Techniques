@@ -271,7 +271,9 @@ Where $y$ is the vector of true values, $f(x, \omega)$ is the regression, $\xi$ 
 The Lagrangian dual formulation of this problem is
 
 \begin{gather}
-Look this up in Bishop\\
+max -\frac{1}{2} \sum_{n=1}^N \sum_{m=1}^N ( \alpha_n - \alpha_n^*)
+      (\alpha_m - \alpha_m^*) k(x_n, x_m)\\
+      \nonumber - \epsilon \sum_{n=1}^N(\alpha_n + \alpha_n^*) + \sum_{n=1}^N (\alpha_n - \alpha_n^*) y_n\\
 \nonumber 0 \leq \alpha_i , \alpha_i^* \leq C
 \end{gather}
 
@@ -308,6 +310,8 @@ A_{eq} =
 b_{eq} = 0\\
 b_{lower} = 0 \; \; b_{upper} = C
 \end{gather}
+
+\noindent Where $K$ is the Gram matrix.
 
 We made the slightly surprising discovery that Matlab quadratic programming doesn't seem to to support optimizing over multiple dimensions at once. Thus, for our investigations into the regression SVM, we actually created 6 SVMS (X translation, Y translation, Z translation, Yaw, Pitch, Roll) for each of the 3 different test shapes.
 
@@ -493,6 +497,74 @@ Fig \ref{supportVectors} shows the number of support vectors generated in each o
 
 
 \section{Feed-Forward Network (FFNN)}
+We implemented a feed forward neural network in MATLAB (based on our code from HW3). We used this network to train and predict on the geometric reference point data set. (The fully connected nature and the large data size of the bitmaps made running on a MATLAB based code too slow for practicality.)
+
+We used ReLUs for our activation functions in the hidden layers. All of our weights were initialized to a normal random variable with variance $1/\sqrt{m}$ where $m$ is the number of neurons in the previous layer. Biases were initialized to 0. This initialization scheme means that the magnitude of the input to a neuron should not depend on how many neurons are in the previous layer. Our output layer was simply a linear output, as we were performing regression and not classification. We used squared loss as our loss function. Unlike the SVM, the neural network was able to output a complete prediction for all dimensions of the pose, as opposed to our SVM case where we had different regressions for each dimension.
+
+Instead of outputting a 6 dimensional pose, we opted to convert the poses to a 3 dimensional translation concatenated to a 9 dimensional direction cosine matrix. The direction cosine matrix (DCM) is a 3x3 matrix where each column is an axis in the body frame of the shape, with the rotation of the pose applied.
+
+\begin{gather}
+\nonumber \hat x = R \cdot \vec x \; \; \; \; \hat y = R \cdot \vec y \; \; \; \; \hat z = R \cdot \vec z\\
+DCM =
+\begin{bmatrix}
+\hat x & \hat y & \hat z
+\end{bmatrix}
+\end{gather} 
+
+\noindent Where $\vec x$, $\vec y$, and $\vec z$ are the unit vectors for the coordinate system, and $R$ is the rotation matrix of the pose.
+
+There are two benefits of this system. The first is that there are no ambiguities with wrap-around (like the with the yaw coordinate that we saw with the SVMs). The second is that now the dimensions of the prediction are all approximately around the same order of magnitude. Previously, angular components varied all the way to 360, but now, all components are approximately around magnitude 1. This will help prevent the neural network from favoring one coordinate over the other. We, of course, also converted our true pose parameters into this 12-vector form as well.
+
+Like the SVMs, we used a coordinate descent emprical algorithm to search for an optimum configuration. For each training, we trained with a batch size of 1, and terminated when the validation error (the RMS of the norms between the predicted 12-vectors and the true 12-vectors) did not improve for 10 epochs (an epoch being presenting 250 randomly drawn training samples). We varied 6 hyper-parameters, the number of neurons in 5 layers ( $L_1 \dots L_5$ ), and the learning rate $\eta$.
+
+\begin{gather}
+\eta \in \{  10^{-2}, 10^{-3}, 10^{-4}, 10^{-5}, 10^{-6}, 10^{-8} \}\\
+L_i \in \{  0, 2, 8, 32, 128, 256  \}
+\end{gather}
+
+\noindent (An $L_i$ of 0 indicated we just dropped the layer, so we varied different total number of layers in the architechture. As there is some randomness in the final validation accuracy due to initialization, we couldn't rely on a monotonically decreasing error and it's eventually shallowing out to determine when to terminate. We thus used a termination of 10 full cycles of optimizing every hyper-parameter.
+
+\begin{table}
+\caption{Optimal hyper-parameters for Feed-Forward Neural Networks}
+\label{FFNN_Params}
+\centering
+
+\begin{tabular}{|c|c|c|}
+\hline
+Shape & $L$ & $\eta$\\
+\hline
+Cube & [32, 256, 256 ] & .01\\
+Cone & [128, 128 ] & .01\\
+Sphere & [128, 128 ] & 0.01\\
+\hline
+\end{tabular}
+
+\end{table}
+
+\begin{table}
+\caption{Feed-Forward Neural Network Performance}
+\label{FFNN_Perf}
+\centering
+
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+Shape & Train Error & Val Error & Test Error & Test Translational Error & Test Angular Error\\
+\hline
+Cube &0.0019    &0.1222   & 0.1462 & .2307 &  6.3224\\
+Cone &0.0110   &0.1645    &0.1566 & .2091 & 6.5724\\
+Sphere &0.0164    &0.1347   & 0.1696 & .2053 & 7.3250\\
+\hline
+\end{tabular}
+
+\end{table}
+
+Table \ref{FFNN_Params} shows the optimized hyper-parameters that our coordinate descent algorithm found for each shape. Two and three layer networks were the best, with large amount of neurons in. $\eta$ seems to have converged on 0.01 as the best step size.
+
+Table \ref{FFNN_Perf} shows the performance of our optimal neural networks on the point data set. Validation and test error are the RMS values of the norm of the vector residual between the real 12-vector and the predicted 12-vector. To get a more intuitive measure of how the regression was performing, we also for the test set, listed the average translational error (norm of the residual between translation vectors) and the average angle between the body axiis of the predicted rotation versus the real rotation (in degrees).
+
+We note that first, we have performed much better than the SVM. Translational error is smaller, and the average angular error has sunk to less than 10 degrees. This is still no where close to the accuracy, of the EPnP algorithm, but is much closer.
+
+We note that based on the training error vs. the validation error and the test error, that we are overfitting. There are a number of ways we could have tried to remove this over-fitting if we had more time to study the problem, including noising up the point locations, or implementing drop-out. It's also possible, that we simply need to provide more samples during the training.
 
 \subsection{Implementation}
 
