@@ -515,7 +515,7 @@ DCM =
 
 There are two benefits of this system. The first is that there are no ambiguities with wrap-around (like the with the yaw coordinate that we saw with the SVMs). The second is that now the dimensions of the prediction are all approximately around the same order of magnitude. Previously, angular components varied all the way to 360, but now, all components are approximately around magnitude 1. This will help prevent the neural network from favoring one coordinate over the other. We, of course, also converted our true pose parameters into this 12-vector form as well.
 
-Like the SVMs, we used a coordinate descent emprical algorithm to search for an optimum configuration. For each training, we trained with a batch size of 1, and terminated when the validation error (the RMS of the norms between the predicted 12-vectors and the true 12-vectors) did not improve for 10 epochs (an epoch being presenting 250 randomly drawn training samples). We varied 6 hyper-parameters, the number of neurons in 5 layers ( $L_1 \dots L_5$ ), and the learning rate $\eta$.
+Like the SVMs, we used a coordinate descent empirical algorithm to search for an optimum configuration. For each training, we trained with a batch size of 1, and terminated when the validation error (the RMS of the norms between the predicted 12-vectors and the true 12-vectors) did not improve for 10 epochs (an epoch being presenting 250 randomly drawn training samples). We varied 6 hyper-parameters, the number of neurons in 5 layers ( $L_1 \dots L_5$ ), and the learning rate $\eta$.
 
 \begin{gather}
 \eta \in \{  10^{-2}, 10^{-3}, 10^{-4}, 10^{-5}, 10^{-6}, 10^{-8} \}\\
@@ -578,7 +578,7 @@ We explored using a convolutional neural network on our image data only. This is
 We implemented our CNN using a GPU version of TensorFlow. Similar to homework 3, we had an input layer, multiple convolution and pooling layers, multiple hidden layers, and an output layer.(Fig \ref{Fig:CNN_ARCH})
 
 \begin{figure}
-	\centering\hspace{0 ex}
+	\centering\hspace{-10 ex}
 	\includegraphics[width=4in]{CNN_ARCH}
 	\caption{Graphical Representation of our CNN Setup}
 	\label{Fig:CNN_ARCH}
@@ -625,76 +625,86 @@ Num.\ Conv./Pooling\ Layers &\in [0,\ 1,\ 2]\\
 
 Performance on the raw image data sets In table /ref table you can see the performance over each iteration of the coordinate descent. Overall the performance of the CNN did not fair well for the image data. It is clear that in some cases coordinate descent improved over each iteration while others it seemed to have performance that bounced around. We decided to take the hyper parameters of the best performing iteration of each layer architecture and run those cases for a larger number of steps to see if the performance improved. Those results are shown in table /ref table. *Some intelligent statement of about that*. 
 
-*TABLE of performance and iteration
+\begin{table}
+	\caption{Optimal Architecture for Convolutional Neural Network}
+	\label{CNN_Params}
+\begin{tabular}{|c|c|c|c|c|}
+	\hline
+	Shape & Train RMS Error & Val RMS Error & Num Hidden & Num Conv. \\
+	\hline
+	Cube & 4.5070 & 4.6018 & 2 & 1  \\
+	Cone & 4.4347 & 4.0840 & 1 & 2\\
+	Sphere &4.5627 & 4.5696  & 2 & 0\\
+	\hline
+\end{tabular}
 
-*Table of performance of long run for best configuration*
+\end{table}
 
-*Table of performance of each component*
+
+\begin{table}
+	\caption{Optimal Hyperparameters for Convolutional Neural Network}
+	\label{CNN_Params}
+	\begin{tabular}{|r|c|c|c|}
+		\hline
+     	&\multicolumn{1}{|c|}{Cube} & \multicolumn{1}{|c|}{Cone} &
+     	\multicolumn{1}{|c|}{Sphere}\\
+     	\hline
+     	Weight Penalty  & 0.1 & 0 &0\\
+     	\hline
+     	Learning Rate  & 10^{-4} & 10^{-4} & 10^{-4}\\
+     	\hline
+     	Neurons in Hidden Layer 1  & 16 & 16  &32\\
+		\hline
+		Neurons in Hidden Layer 2  & 32 & * &16\\
+		\hline
+		Conv. Layer 1 Filter Size  & 3 & 8 &*\\
+		\hline
+		Conv. Layer 2 Filter Size  & * & 3 &*\\
+		\hline
+		Conv. Layer 1 Stride  & 4 & 2 &*\\
+		\hline
+		Conv. Layer 2 Stride  & * & 2 &*\\
+		\hline
+		Conv. Layer 1 Depth  & 8 & 8 &*\\
+		\hline
+		Conv. Layer 2 Depth  & * & 8 &*\\
+		\hline
+		Pooling  & ON & ON & *\\
+		\hline
+		Pooling Layer 1 Filter Size  & 8 & 5 &*\\
+		\hline
+		Pooling Layer 2 Filter Size  & * & 3 &*\\
+		\hline
+		Pooling Layer 1 Stride & 41 & 4 &*\\
+		\hline
+		Pooling Layer 2 Stride  & * & 1 &*\\
+		
+
+		\hline
+	\end{tabular}
+	
+\end{table}
+
 
 To get a better understanding of the errors, we looked at the each pose component separately to see if we. Since the orientation of the pose is in DCM, we looked at the dot products of the estimated  and true normalized vectors of the x, y, and z components of the DCM to give us an idea of our accuracy. It should be noted that if the dot produce is equal to 1 then it means they matched perfectly and a dot produce of -1 means they are anti-parallel. On average we can see that  .....
 
-*Compare to SVM*
-
-\begin{table}[h]
-	\caption{CNN Performance for Cone images after ten iterations of Coordinate Ascent}
-	\label{CNN_CONE_TABLE}
-	\centering
-	\begin{tabular}{|c|c|c|c||c|c|c|}
-		\cline{2-7}
-		\multicolumn{1}{c|}{} &	\multicolumn{6}{c|}{CONE}\\\cline{2-7}
-		\multicolumn{1}{c|}{}&\multicolumn{3}{|c||}{Training Error}  &\multicolumn{3}{c|}{Validation Error} \\
-		\cline{2-7}
-		\multicolumn{1}{c|}{} & HL = 1 & 2 & 3 &1 & 2 & 3 \\
-		\hline
-		CL = 1	& & & 	& & & \\
-		2	& & & & & & \\
-		3	& & & & &  & \\
-		\hline
-		
-		
-	\end{tabular}
-\end{table}
-
-\begin{table}[h]
-	\caption{CNN Performance for Cube images after ten iterations of Coordinate Ascent}
-	\label{CNN_CUBE_TABLE}
-	\centering
-	\begin{tabular}{|c|c|c|c||c|c|c|}
-		\cline{2-7}
-		\multicolumn{1}{c|}{} &	\multicolumn{6}{c|}{Cube}\\\cline{2-7}
-		\multicolumn{1}{c|}{}&\multicolumn{3}{|c||}{Training Error}  &\multicolumn{3}{c|}{Validation Error} \\
-		\cline{2-7}
-		\multicolumn{1}{c|}{} & HL = 1 & 2 & 3 &1 & 2 & 3 \\
-		\hline
-		CL = 1	& & & 	& & & \\
-		2	& & & & & & \\
-		3	& & & & &  & \\
-		\hline
-		
-		
-	\end{tabular}
-\end{table}
-
-
-\begin{table}[h]
-	\caption{CNN Performance for Sphere images after ten iterations of Coordinate Ascent}
-	\label{CNN_SPHERE_TABLE}
-	\centering
-	\begin{tabular}{|c|c|c|c||c|c|c|}
-		\cline{2-7}
-		\multicolumn{1}{c|}{} &	\multicolumn{6}{c|}{SPHERE}\\\cline{2-7}
-		\multicolumn{1}{c|}{}&\multicolumn{3}{|c||}{Training Error}  &\multicolumn{3}{c|}{Validation Error} \\
-		\cline{2-7}
-		\multicolumn{1}{c|}{} & HL = 1 & 2 & 3 &1 & 2 & 3 \\
-		\hline
-		CL = 1	& & & 	& & & \\
-		2	& & & & & & \\
-		3	& & & & &  & \\
-		\hline
-		
-		
-	\end{tabular}
-\end{table}
+\begin{figure}
+	\hspace{-10 ex}
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=1.9in]{train_coord_descent_plot}
+		\caption{Training data RMS}
+		\label{fig:train_coord_desc}
+	\end{subfigure}%
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		\includegraphics[width=1.9in]{val_coord_descent_plot}
+		\caption{Validation data RMS}
+		\label{fig:val_coord_desc}
+	\end{subfigure}
+	\caption{Figure shows RMS of the validation and training data after each coordinate descent iteration for each shape.}
+	\label{Fig:cone_performance}
+\end{figure}
 
 
 \section{Summary}
