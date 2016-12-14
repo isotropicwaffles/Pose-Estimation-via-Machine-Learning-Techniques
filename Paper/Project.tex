@@ -61,7 +61,7 @@
 \section{Introduction}
 In this project, we explored the application of machine learning to the problem of estimating an object's 3D position and orientation, known as a pose, from a 2D projection. Being able to accurately perform this estimation has applications in several disciplines including Computer Vision, Photogrammetry, and Robotics\cite{Robust_PNP}. A notable application is object tracking in virtual reality systems (VR), such as the HTC Vive and Oculus Rift. Both of these systems estimate 2D angular locations of reference points on the objects being tracked to determine the object's pose.
 
-For a system like the HTC Vive, this measurement is done directly via time of arrival of laser sweeps on reference points which are photodiodes. (Fig \ref{fig:vive}) In the case of the Oculus Rift, a camera is used to identify predetermined reference points (IR LEDs) before estimating the 2D angular location. This is done by blinking each LED in a specific pattern which is observed by a camera. (Fig \ref{fig:oculus}) After the reference points are identified they are centroided to determine their angular location on the focal plane. Once the 2D angular locations are estimated a Perspective N-Point method is applied to estimate the objects pose. In the next subsection we discuss what this method in more detail. 
+For a system like the HTC Vive, this measurement is done directly via time of arrival of laser sweeps on reference points which are photodiodes. (Fig \ref{fig:vive}) In the case of the Oculus Rift, a camera is used to identify predetermined reference points (IR LEDs) before estimating the 2D angular location. This is done by blinking each LED in a specific pattern which is observed by a camera. (Fig \ref{fig:oculus}) After the reference points are identified they are centroided to determine their angular location on the focal plane. Once the 2D angular locations are estimated a Perspective N-Point method is applied to estimate the objects pose. In the next subsection we discuss what this method is in more detail. 
 
 
 \begin{figure}
@@ -85,7 +85,7 @@ For a system like the HTC Vive, this measurement is done directly via time of ar
 
 \subsection{Perspective N-Point (PnP) Method}
 The problem of estimating an objects 3D pose from 2D projections of known reference points is referred to as the "Perspective N-Point" problem. (PnP) 
-Common approaches to this problem involve directly or iteratively solving a system of equations\cite{EPnP}. While these approaches can be very precise with the well defined reference points (Minimum of 4 non co-planar points for a non-ambiguous solution), there are usually trade-offs between accuracy and compute time. Direct solvers of these system of equations can be performed computationally fast, but may not be robustly accurate. On the other hand, iterative methods tend to be slower but more robust. A well-formed hybrid of these solvers can be both fast and robustly accurate for well defined points. One of these methods was used to baseline our performance using machine learning algorithms. That method is discussed in more detail in the Baseline Performance EPnP section.
+Common approaches to this problem involve directly or iteratively solving a system of equations\cite{EPnP}. While these approaches can be very precise with the well defined reference points (Minimum of 4 non co-planar points for a non-ambiguous solution), there are usually trade-offs between accuracy and compute time. Direct solvers of these system of equations can be performed computationally fast, but may not be robustly accurate. On the other hand, iterative methods tend to be slower but more robust. A well-formed hybrid of these solvers can be both fast and robustly accurate for well defined points. One of these methods was used to baseline our performance to compare with the results of our machine learning algorithms. This baseline method is discussed in more detail in the Baseline Performance EPnP section.
 
 
 
@@ -97,9 +97,9 @@ These data types are similar to the raw and processed data, respectively, of the
 
 Using the reference point data, we were curious if we could match the performance of the PnP method and, if we could obtain similar performance using many points, determine if pose regression using machine learning was robust using less than 4 points (the limitation for non-ambiguous solutions using PnP). Due to the sparsity of this type of data, set we did not train a CNN with it; we tested this type of data only on the SVM and FFNN. 
 
-For the raw image data, we were curious if we could train our models such that they could directly estimate the poses of objects without the need to perform multiple processing steps such as centroiding. If this method worked robustly, then tracked objects may be able to remove explicit defined reference points which would allow for a more cost effective and general solution to the pose estimation problem. 
+For the raw image data, we were curious if we could train our models such that they could directly estimate the poses of objects without the need to perform multiple processing steps such as reference point identification and centroiding. If this method worked robustly, then tracked objects may be able to remove the need to explicitly define reference points which would allow for a more cost effective and general solution to the pose estimation problem. 
  
- We also note the use of PnP algorithms require that the reference points, no matter how their locations are measured, are only useful if their exact relative geometry to one another. That is, the PnP algorithms are given knowledge of what the object looks like. In the case our machine learning algorithms, the geometry of the objects are not specified, and must be learned during the training phase. The challenge of tracking objects would then be free of the problem of getting exact geometric measurements.
+ We also note the use of PnP algorithms require that the reference points, no matter how their locations are measured, are only useful if their exact relative geometry to one another is known. That is, the PnP algorithms are given knowledge of what the object looks like. In the case our machine learning algorithms, the geometry of the objects are not specified, and must be learned during the training phase. The challenge of tracking objects would then be free of the problem of getting exact geometric measurements.
  
 Unfortunately, we found that none of our techniques met the performance of the PnP.  We were hoping to get comparable results to PnP methods but found that the estimations from all data sets were significantly worse than the PnP. We discuss this in more detail in each techniques respective section.
 
@@ -112,11 +112,11 @@ To test our machine learning and baseline PnP algorithm we generated two data se
 
 \subsection{Geometric Data Points}
 
-The first data set consists of the projected 2D locations of geometric points from the various shapes. We defined a set of 3D points on the surfaces of the cube, the cone, and the sphere. These base shapes were centered around the origin of our coordinate system. Then, a randomly generated translation and rotation (a pose) was applied to the points. Finally, the points were projected onto a 2D image using a sixty degree field of view.
+The first data set consists of the projected 2D locations of geometric reference points from the various shapes. We defined a set of 3D points on the surfaces of the cube, the cone, and the sphere. These base shapes were centered around the origin of our coordinate system. Then, a randomly generated translation and rotation (a pose) was applied to the points. Finally, the points were projected onto a 2D image using a sixty degree field of view.(FOV)
 
-The geometry of the world was set in a right-handed coordinate system. The camera is at the origin and points along the negative z-axis, so that the x-axis points to the right, and the the y-axis points up (from the point of view of the camera).
+The geometry of the world was set in a right-handed coordinate system. The camera is at the origin and points along the negative z-axis, so that the x-axis points to the right, and the the y-axis points up (from the point of view of the camera(Fig \ref{openglFrustum})).
 
-The base geometry of each shape was chosen to to have a characteristic dimension of 1.0. The sphere had a diameter of 1.0. The cone had a diameter of 1.0 at its base, and a height of 1.0. The cube had sides of length 1.0. The rotations were allowed to vary uniformly through the space. Yaw varied between 0 and 360 degrees. Pitch varied between positive 90 and negative 90 degrees. Roll varied between 0 and 180 degrees. Those spans are enough to specify any 3D rotation. The x and y of the coordinates of the translation were uniformly distributed between -1.5 and +1.5. The z coordinated varied between -4.33 and -1.7320. This z range placed our shapes at a distance from the camera so that they took up roughly one fifth to a third of the total FOV. We note it was possible for a shape to be half off the image.
+The base geometry of each shape was chosen to to have a characteristic dimension of 1.0; the sphere had a diameter of 1.0, the cone had a diameter of 1.0 at its base, and a height of 1.0, the cube had sides of length 1.0. The rotations were allowed to vary uniformly throughout the space. Yaw varied between 0 and 360 degrees. Pitch varied between positive 90 and negative 90 degrees. Roll varied between 0 and 180 degrees. Those spans are enough to specify any 3D rotation. The x and y of the coordinates of the translation were uniformly distributed between -1.5 and +1.5. The z coordinated varied between -4.33 and -1.7320. This z range placed our shapes at a distance from the camera so that they took up roughly one fifth to a third of the total FOV. We note it was possible for a shape to be half off the image.
 
 The math for applying our random pose, and then projecting our points onto a 2D image follow the vertex processing of OpenGL 1.0. We start with our points from the base shape. These are converted to homogeneous coordinates, which are 4-vectors of the form:
 
@@ -125,7 +125,7 @@ The math for applying our random pose, and then projecting our points onto a 2D 
 \end{equation}
 
 \noindent Where $x$, $y$, and $z$ are the traditional 3D coordinates.
-The benefit of this coordinate system is that both translations and rotations can be written as a matrix multiplication. We create one matrix for the translation, as well as for each of the yaw, pitch, and roll rotations. ($T$, $Y$, $P$, and $R$ matrices.) Finally, we calculate a projection matrix ($C$) which defines a frustum (Fig \ref{openGlFrustum}) that represents the field of view of the camera.
+The benefit of this coordinate system is that both translations and rotations can be written as a matrix multiplication. We create one matrix for the translation, as well as for each of the yaw, pitch, and roll rotations. ($T$, $Y$, $P$, and $R$ matrices.) Finally, we calculate a projection matrix ($C$) which defines a frustum (Fig \ref{openglFrustum}) that represents the field of view of the camera.
 
 \begin{figure}
 	\hspace{-10 ex}
@@ -143,7 +143,7 @@ We then calculate the final locations of the points:
 \vec r_{posed} = C \cdot T \cdot Y \cdot P \cdot R \cdot \vec r
 \end{equation}
 
-We normalize these coordinates, by dividing each element of the 4th component of each vector. These normalized coordinates have the property that every point inside that frustum has x, y, and z coordinates in [-1, 1]. Anything else is out of the FOV.
+We normalize these coordinates, by dividing each element by the 4th component of each vector. These normalized coordinates have the property that every point inside that frustum has x, y, and z coordinates in [-1, 1]. Anything else is out of the FOV.
 
 We also calculated the occlusion of each of these points. The final points have z-coordinates, and by defining a set of triangles on the surface of each shape, it is possible to see if a point is blocked by some surface segment of the shape. In the end we record only the location of the projected points on the x-y plane and if the point was occluded.
 
@@ -152,7 +152,7 @@ We also calculated the occlusion of each of these points. The final points have 
 \subsection{Image Data Set}
 Our second data set consisted of full bitmap images of posed cubes, cones, and spheres on a black background. We used the GLUT library to speed our creation of these scenes with OpenGL. Like before, we created 500 random poses of each of the three shapes. The math implemented is the same as in the geometric point case, but of course, OpenGL will render a full scene after transforming the shape vertices.
 
-We applied a texture to our shapes. We chose a high-res version of the Earth from NASA public release. We figured this texture was interesting and also asymmetric. Lack of symmetry is beneficial, as for example, it's possible to, for example, determine which face of the cube you are observing; each face will have a unique part of the Earth on it.
+We applied a texture to our shapes. We chose a high-res version of the Earth from NASA public release. We figured this texture was interesting and also asymmetric. Lack of symmetry is beneficial since it's possible to determine which face of the cube you are observing; each face will have a unique part of the Earth on it.
 
 We rendered 64x64 24-bit RGB images and saved them in BMP format. The images are saved unnormalized, but we applied normalization in our algorithms.
 Samples are shown in Fig. \ref{openglCone}, \ref{openglCube}, and \ref{openglSphere}.
@@ -189,11 +189,11 @@ Samples are shown in Fig. \ref{openglCone}, \ref{openglCube}, and \ref{openglSph
 
 \section{Baseline Performance of EPnP}
 
- As a baseline to the performance of the 3D estimation, we used a method referred to as Efficient PnP (EPnP). The implementation of the solver used was included as part of a paper by Lepetit et al\cite{EPnP}. This method is a hybrid method between a direct and iterative solver. In first part of the algorithm, a weighted sum of four virtual points are calculated from n observed reference points. These four virtual points are then used in the direct solver which gives an initial guess of the solution. This guess is then fed into a Gauss-Newton iterative solver which reduces the overall errors in the guess. Overall this implementation's computational cost is linear in terms of the number of reference points.
+ As a baseline to the performance of the 3D estimation, we used a method referred to as Efficient PnP (EPnP). The implementation of the solver used was included as part of a paper by Lepetit et al\cite{EPnP}. This method is a hybrid method between a direct and iterative solver. In first part of the algorithm, a weighted sum of four virtual points are calculated from N observed reference points. These four virtual points are then used in the direct solver which gives an initial guess of the solution. This guess is then fed into a Gauss-Newton iterative solver which reduces the overall errors in the guess. Overall this implementation's computational cost is linear in terms of the number of reference points.
  
- Results of this method for our geometric reference point data set are shown in Table \ref{EPnP_Table}. Overall the performance of this calculation is robust to some level of noise as long as the points are non-coplanar. A notable issue with this method is seen in cases where the points are co-planar. This is clearly shown in (Fig \ref{Fig:cone_performance}) for the case where the cone's base occludes the all non co-planar reference points. The error from this image corresponds to the maximum error observed for the cases where occlusion is included. 
+ Results of this method for our geometric reference point data set are shown in Table \ref{EPnP_Table}. Overall the performance of this calculation is robust when four non co-planar points are observed. A notable issue with this method is seen in cases where the points are co-planar. This is clearly shown in (Fig \ref{Fig:cone_performance}) for the case where the cone's base occludes the non co-planar reference points. The error from this image corresponds to the maximum error observed for the cases where occlusion is included. 
  
- Other than these outliers cases this method is great for cases where there the reference points are well defined and non-coplanar. 
+ Other than these outliers cases this method is great for cases where the reference points are well defined and non-coplanar. 
  
  It should be noted that this method also has a strict assumption that the reference points are on a rigid body. This is due to the fact that the 3D geometry of the reference points must be known beforehand to feed to the algorithms. . 
  
@@ -256,7 +256,7 @@ Samples are shown in Fig. \ref{openglCone}, \ref{openglCube}, and \ref{openglSph
 \section{SVM Regression}
 
 \subsection{Implementation}
-We implemented our own version of the regression support vector machine SVM) in Matlab using it's quadratic programming routines. The regression SVM is formulated as the optimization of the $\epsilon$ - insensitive loss function:
+We implemented our own version of the regression support vector machine (SVM) in Matlab using it's quadratic programming routines. The regression SVM is formulated as the optimization of the $\epsilon$ - insensitive loss function:
 
 \begin{gather}
 min\; \frac{1}{2} || \omega ||^2 + C \sum_{i = 1}^{n} (\xi_i + \xi_i^*)\\
@@ -315,14 +315,14 @@ b_{lower} = 0 \; \; b_{upper} = C
 
 We made the slightly surprising discovery that Matlab quadratic programming doesn't seem to to support optimizing over multiple dimensions at once. Thus, for our investigations into the regression SVM, we actually created 6 SVMS (X translation, Y translation, Z translation, Yaw, Pitch, Roll) for each of the 3 different test shapes.
 
-We used a Gaussian Radial Basis kernel for both our geometric reference point and the image data set. The bitmaps were simply changed into a 64x64x3 length vector (which we normalized to $[-0.5, 0.5]$) and passed into the kernel as usual. For the $N$ points for each shape in the reference point dataset, we formed a vector of $2N$ dimensions. (The X, and Y coordinates of each 2D projected point.)  For example, we had 14 reference points in our cube poses, and thus formed each pose into a length 28 vector.
+We used a Gaussian Radial Basis kernel for both our geometric reference point and the image data set. The bitmaps were simply changed into a 64x64x3 length vector (which we normalized to $[-0.5, 0.5]$) and passed into the kernel as usual. For the $N$ points of each shape in the reference point dataset, we formed a vector of $2N$ dimensions. (The X, and Y coordinates of each 2D projected point.)  For example, we had 14 reference points in our cube poses, and thus formed each 2D projection into a length 28 vector.
 
-This formulation on the geometric reference point set ignores the effects of occlusion. Hypothetically, to best match the problem, we should not provide information from points that are occluded. We attempted to derive a kernel that could encode the knowledge of which points were occluded, define a kernel based on the GRBK which only considered points that were unoccluded in both samples. (All other entries corresponded to points occluded in either sample were set to zero.)
+This formulation on the geometric reference point set ignores the effects of occlusion. Hypothetically, to best match the problem, we should not provide information from points that are occluded. We did attempt to derive a kernel that could encode the knowledge of which points were occluded, define a kernel based on the GRBK which only considered points that were not occluded in both samples. (All other entries corresponded to points occluded in either sample were set to zero.)
 Unfortunately, Matlab quickly informed us using this kernel made the problem non-convex, and we suspect this operation is not actually positive semi-definite.
 
 We divided our 500 poses from each shape into a training set of 250 samples, a validation set of 125 samples, and a testing set of 125 samples. Our figure of merit was the root mean square value of the residuals between the real translation or rotation coordinates of our data, and those predicted by our SVM. (Recall, we trained a different SVM for each of the 6 dimensions of the pose.)
 
-For both our datasets we have 3 hyper-parameters to optimize for: $C$, $\epsilon$, and $\sigma$ (the bandwidth of the kernel). We optimized our hyper-parameters by using an empirically based coordinate descent algorithm. We varied our hyper-parameters over:
+For both our datasets we have three hyper-parameters to optimize for: $C$, $\epsilon$, and $\sigma$ (the bandwidth of the kernel). We optimized our hyper-parameters by using an empirically based coordinate descent algorithm. We varied our hyper-parameters over:
 
 \begin{align*}
 C &\in [10^{6} ... 10^{100}]\\
@@ -330,7 +330,7 @@ C &\in [10^{6} ... 10^{100}]\\
 \epsilon &\in [10^{-3} ... 10^{3}]
 \end{align*}
 
-\noindent 100 test points were in each parameter sweep, spread evenly logarithmically.
+\noindent where 100 test points were in each parameter sweep, spread evenly logarithmically.
 
 In turn, we optimized each of the hyper-parameters keeping the others constant. We trained an SVM for each of the 100 possible values for the hyper-parameter in question, and then set it to the value that produced the lowest validation error. We then continued on with the next hyper-parameter, cycling through until validation error stayed constant through a cycle of all the hyper-parameters.
 
@@ -344,33 +344,33 @@ In turn, we optimized each of the hyper-parameters keeping the others constant. 
 	\hline
 	Shape & Dimension & Train E. & Val E. & Test E\\
    \hline
-    Cone &Yaw & 65.554484 & 64.610879 & 143.902763 \\
-    Cone &Pitch & 9.679785 & 19.332789 & 67.931383 \\
-    Cone &Roll & 22.610235 & 28.204543 & 63.173690 \\
     Cone &X & 0.028562 & 0.097226 & 1.203973 \\
     Cone &Y & 0.017899 & 0.096197 & 1.324511 \\
     Cone &Z & 0.074570 & 0.240741 & 0.673912 \\
+    Cone &Yaw & 65.554484 & 64.610879 & 143.902763 \\
+    Cone &Pitch & 9.679785 & 19.332789 & 67.931383 \\
+    Cone &Roll & 22.610235 & 28.204543 & 63.173690 \\
     \hline
-    Cube & Yaw & 54.671545 & 69.127465 & 128.892843 \\
-    Cube & Pitch & 11.516737 & 15.104284 & 70.884934 \\
-    Cube & Roll & 22.665185 & 27.860259 & 64.804574 \\
     Cube & X & 0.006369 & 0.051618 & 1.246132 \\
     Cube & Y & 0.010817 & 0.038766 & 1.148181 \\
     Cube & Z & 0.050916 & 0.115780 & 0.719099 \\
+    Cube & Yaw & 54.671545 & 69.127465 & 128.892843 \\
+    Cube & Pitch & 11.516737 & 15.104284 & 70.884934 \\
+    Cube & Roll & 22.665185 & 27.860259 & 64.804574 \\
     \hline
-    Sphere & Yaw & 61.834910 & 76.257994 & 124.865239 \\
-    Sphere & Pitch & 15.551304 & 16.981590 & 67.641860 \\
-    Sphere & Roll & 15.323147 & 36.774045 & 62.371281 \\
     Sphere & X & 0.031519 & 0.078171 & 1.208821 \\
     Sphere & Y & 0.019581 & 0.069591 & 1.313238 \\
     Sphere & Z & 0.085546 & 0.170599 & 0.715436\\
+    Sphere & Yaw & 61.834910 & 76.257994 & 124.865239 \\
+    Sphere & Pitch & 15.551304 & 16.981590 & 67.641860 \\
+    Sphere & Roll & 15.323147 & 36.774045 & 62.371281 \\
     \hline
 	\end{tabular}
 \end{table}
 
 Table \ref{SVM_Point} shows our RMS error for pose estimation using the geometric reference points (angles in degrees) with the optimized hyper-parameters we found by coordinate descent. The first thing we note, of course, is that these values are terrible! We appear to be doing better than random chance, but not by much. We see the largest error in Yaw, which we think might be due to the ambiguous discontinuity near 360 / 0 degrees. The other dimensions do not have a wrap around point as they were only varied 180 degrees.
 
-We note a very interesting trend in the relative differences between train, test, and validation error. Generally, our training error was less than our validation error, suggesting overfitting, but we also note many times the validation error was significantly less than the test error! The biggest examples of this effect can be seen in the translation dimensions. Our training and validation errors are small, on the order of $10^{-2}$ or $10^{-1}$, but the test error is over 1. We theorize that perhaps our 500 samples are too sparse in the dimensionality of the problem, such that learning results near the validation set, does not mean areas near the test set have been learned. We did check to see if there were some correlations in the test set to coverage in the randomly generated poses, but they do indeed appear random.
+We note a very interesting trend in the relative differences between train, test, and validation error. Generally, our training error was less than our validation error, suggesting over-fitting, but we also note many times the validation error was significantly less than the test error! The biggest examples of this effect can be seen in the translation dimensions. Our training and validation errors are small, on the order of $10^{-2}$ or $10^{-1}$, but the test error is over 1. We theorize that perhaps our 500 samples are too sparse in the dimensionality of the problem, such that learning results near the validation set, does not mean areas near the test set have been learned. We did check to see if there were some correlations in the test set to coverage in the randomly generated poses, but they do indeed appear random.
 
 \begin{table}[h]
 \caption{SVM Optimized Parameters on the Reference Point Dataset}
@@ -381,31 +381,31 @@ We note a very interesting trend in the relative differences between train, test
 \hline
 Shape & Dim & C & $\sigma$ & $\epsilon$\\
 \hline
-Cone & Yaw & 8697.490026 & 83.021757 & 4.328761\\
-Cone & Pitch & 1629.750835 & 18.738174 & 2.848036\\
-Cone & Roll & 10000.000000 & 100.000000 & 4.328761\\
 Cone & X & 65.793322 & 29.836472 & 0.012328\\
 Cone & Y & 151.991108 & 35.938137 & 0.006136\\
 Cone & Z & 132.194115 & 27.185882 & 0.043288\\
+Cone & Yaw & 8697.490026 & 83.021757 & 4.328761\\
+Cone & Pitch & 1629.750835 & 18.738174 & 2.848036\\
+Cone & Roll & 10000.000000 & 100.000000 & 4.328761\\
 \hline
-Cube & Yaw & 1873.817423 & 6.734151 & 0.001000\\
-Cube & Pitch & 5722.367659 & 17.073526 & 3.764936\\
-Cube & Roll & 2848.035868 & 14.174742 & 0.533670\\
 Cube & X & 21.544347 & 4.641589 & 0.001748\\
 Cube & Y & 26560.877829 & 62.802914 & 0.006136\\
 Cube & Z & 65.793322 & 8.111308 & 0.018738\\
+Cube & Yaw & 1873.817423 & 6.734151 & 0.001000\\
+Cube & Pitch & 5722.367659 & 17.073526 & 3.764936\\
+Cube & Roll & 2848.035868 & 14.174742 & 0.533670\\
 \hline
-Sphere &  Yaw & 20092.330026 & 100.000000 & 0.464159\\
-Sphere &  Pitch & 3274.549163 & 52.140083 & 0.001000\\
-Sphere &  Roll & 705.480231 & 8.111308 & 1.417474\\
 Sphere &  X & 9.326033 & 15.556761 & 0.009326\\
 Sphere &  Y & 70548.023107 & 100.000000 & 0.012328\\
 Sphere &  Z & 1873.817423 & 100.000000 & 0.049770\\
+Sphere &  Yaw & 20092.330026 & 100.000000 & 0.464159\\
+Sphere &  Pitch & 3274.549163 & 52.140083 & 0.001000\\
+Sphere &  Roll & 705.480231 & 8.111308 & 1.417474\\
 \hline
 \end{tabular}
 \end{table}
 
-Table \ref{SVM_Point_Parms} shows what our optimized hyper-parameters were. We note a few general trends. First, the angle dimensions have much larger epsilons, which inutuitively makes sense as they span over larger order of magnitudes than the translation components. C was also, in general, higher for angle dimensions than translational, with the notable exceptions of the Y dimensions for both the sphere and the cube.
+Table \ref{SVM_Point_Parms} shows what our optimized hyper-parameters were. We note a few general trends. First, the angle dimensions have much larger epsilons, which intuitively makes sense as they span over larger order of magnitudes than the translation components. C was also, in general, higher for angle dimensions than translational, with the notable exceptions of the Y dimensions for both the sphere and the cube.
 
 \subsection{Performance on Raw Image Data}
 
@@ -443,7 +443,7 @@ Sphere & Roll & 55.780784 & 53.296742 & 59.528568\\
 
 \end{table}
 
-Table \ref{SVM_Image} shows the performance of our SVM regression using the full bitmap data. We note that the performance is marginally better than our reference point data set, but is still far inferior to the performance of EPnP. It is noteable, that the large differences between test error and validation error have dissappeared. Training error is also much more in line with validation and test error. In fact, often times the test data set out-performed the training data set.
+Table \ref{SVM_Image} shows the performance of our SVM regression using the full bitmap data. We note that the test data performance is marginally better than our reference point data set, but is still far inferior to the performance of EPnP. It is notable, that the large differences between test error and validation error have disappeared Training error is also much more in line with validation and test error. In fact, often times the test data set out-performed the training data set.
 
 \begin{table}[h]
 \caption{SVM Optimized Parameters on Image Dataset}
@@ -573,34 +573,67 @@ We note that based on the training error vs. the validation error and the test e
 \subsection{Performance on Raw Image Data}
 
 \section{Convolutional Neural Network (CNN)}
-We explored using a convolutional neural network on our image data only. This is because CNNs have the ability to relate features locality which makes sense for image data, but does not really help with low dimensionality we see in the point reference data.  
-
+We explored using a convolutional neural network on our image data only. This is because CNNs have the ability to relate features locality which could be beneficial for image data. we again note that due to the low dimensionality of the reference point data set, we did not test the CNN's performance with that data. 
 \subsection{Implementation}
-We implemented our CNN using a GPU version of TensorFlow. Similar to homework 3, we had an input layer, multiple convolution and pooling layers, a hidden layers, and an output layer.(Fig \ref{Fig:CNN_ARCH})
+We implemented our CNN using a GPU version of TensorFlow. Similar to homework 3, we had an input layer, multiple convolution and pooling layers, multiple hidden layers, and an output layer.(Fig \ref{Fig:CNN_ARCH})
 
 \begin{figure}
-	\centering\hspace{-10 ex}
+	\centering\hspace{0 ex}
 	\includegraphics[width=4in]{CNN_ARCH}
 	\caption{Graphical Representation of our CNN Setup}
 	\label{Fig:CNN_ARCH}
 \end{figure}
 
-For the input layer we took each channel(RGB) of in the image and normalized the pixel values such that they could only lay within -0.5 to 0.5. The size of our input layer corresponded to the number of pixels times the number of channels. For the output layer, we used 12 nodes. There were three nodes that represented the 3D position of the object and nine nodes that represented the objects orientation as a direction cosine matrix. We did not apply any activation function the output layer since we were attempting to perform regression and not classification. 
+For the input layer we took each channel(RGB) of the image and normalized the pixel values such that they could only lay within -0.5 to 0.5. The size of our input layer corresponded to the number of pixels times the number of channels. In our cases, all of our runs used a 64x64 pixel image with three channels that corresponded to red, blue, and green. For the output layer, we used 12 neurons; three neurons that represented the 3D position of the object and nine neurons that represented the objects orientation as a direction cosine matrix. We applied a linear output layer since we were attempting to perform regression and not classification. 
 
-The number of layers, nodes, filter size and stride was tunable hyperparameters for the convolution, pooling layers. For the standard hidden layers, the number of layers and nodes were a tunable parameter. The convolutional and hiddens layer both used Relu activation functions, while the pooling layers used maximum operation as activation functions. 
+The number of layers, nodes, filter size and stride was tunable hyperparameters for the convolution, pooling layers. For the standard hidden layers, the number of layers and nodes were a tunable parameter. The convolutional and hidden layer both used Relu activation functions, while the pooling layers used maximum operation as activation functions. 
 
 
 
 \subsection{Training}
-For training the data, we used a standard L2 Loss function as well the same gradient descent method used in homework 3. 
+For training the networks, we used a standard L2 Loss function as well the same gradient descent method used in homework 3. 
 
-Since we were not totally sure the best hyperparameters to use for the data set, we decided to implement version of coordinate ascent to attempt to maximize performance. 
-In each iteration of coordinate descent we ran through the 
+Since we were not totally sure the best hyperparameters to use for the data set, we decided to implement version of coordinate descent to attempt to maximize performance. 
+In each iteration of coordinate descent we ran through the following list of hyperparameters:
+
+
+\begin{align*}
+Train.\ Batch\ Size  &\in [100]\\
+Number\ of\ Training\ Steps  &\in [1000]\\
+Learning\ Rate &\in [10^{-2},\ 10^{-4},\ 10^{-8}]\\
+Conv.\ Filter\ Size &\in [3,\ 5,\ 8]\\
+Conv.\ Stride &\in [1,\ 2,\ 4]\\
+Conv.\ Depth &\in [8,\ 16]\\
+Conv.\ Layer\ Pooling\  &\in [ON,\ OFF]\\
+Pooling\ Filter\ Size &\in [3,\ 5,\ 8]\\
+Pooling\ Stride &\in [1,\ 2,\ 4]\\
+Weight\ Penalty\ Filter\ Size &\in [3,\ 5,\ 8]\\
+Num\ Hidden\ Layer\ Neurons &\in [16,\ 32,\ 64,\ 128]\\
+\end{align*}
+
+We originally were considering including the number of convolution, pooling, and hidden layers as part of the hyper parameters sweep that we performed coordinate descent on. We were concerned that in doing so, the coordinate descent may not be correctly choosing the number of layers due to  of hyper parameters dependencies on those layers may causing a local minimum. We thought this may have a high likelihood of prematurely forcing the CNN layer architecture in to a local minimum but not a global minimum. We addressed this possible problem by choosing a set of layer architectures to run the coordinate descent with and did a comparison between them. We ran our coordinate descent for 10 iterations on the permutations of the following sets:
+
+\begin{align*}
+Num.\ Hidden Layers\  &\in [1,\ 2]\\
+Num.\ Conv./Pooling\ Layers &\in [0,\ 1,\ 2]\\
+\end{align*}
+
 
 \subsection{Performance on Raw Image Data}
 
 
 
+Performance on the raw image data sets In table /ref table you can see the performance over each iteration of the coordinate descent. Overall the performance of the CNN did not fair well for the image data. It is clear that in some cases coordinate descent improved over each iteration while others it seemed to have performance that bounced around. We decided to take the hyper parameters of the best performing iteration of each layer architecture and run those cases for a larger number of steps to see if the performance improved. Those results are shown in table /ref table. *Some intelligent statement of about that*. 
+
+*TABLE of performance and iteration
+
+*Table of performance of long run for best configuration*
+
+*Table of performance of each component*
+
+To get a better understanding of the errors, we looked at the each pose component separately to see if we. Since the orientation of the pose is in DCM, we looked at the dot products of the estimated  and true normalized vectors of the x, y, and z components of the DCM to give us an idea of our accuracy. It should be noted that if the dot produce is equal to 1 then it means they matched perfectly and a dot produce of -1 means they are anti-parallel. On average we can see that  .....
+
+*Compare to SVM*
 
 \begin{table}[h]
 	\caption{CNN Performance for Cone images after ten iterations of Coordinate Ascent}
@@ -665,6 +698,30 @@ In each iteration of coordinate descent we ran through the
 
 
 \section{Summary}
+
+\section{Division of Labor}
+
+\begin{table}[h]
+	\caption{Project Division Of Labor}
+	\label{SomeTable}
+	\centering
+	\begin{tabular}{|c|c|}
+		\hline
+		Task &  Person\\
+		\hline
+		Data Set Generation &  Ben\\
+		
+		EPnP Baseline Work &  Alex\\
+		SVM Regression & Ben\\
+		FFNN & Ben \\
+		CNN & Alex\\
+		Report Writing & Alex and Ben\\
+		\hline
+		
+		
+	\end{tabular}
+\end{table}
+
 
 
 \begin{thebibliography}{10}
